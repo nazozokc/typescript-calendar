@@ -20,7 +20,8 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false,
     "paths": {
-      "@typescript-calendar-lib/core": ["./packages/core/src/index.ts"]
+      "@typescript-calendar-lib/core": ["./packages/core/src/index.ts"],
+      "@typescript-calendar-lib/tui": ["./packages/tui/src/index.ts"]
     }
   },
   "exclude": ["docs/dist", "**/dist"]
