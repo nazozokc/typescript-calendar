@@ -136,10 +136,11 @@ export function parseArgs(args: readonly string[]): ParseResult {
         break;
       }
       default: {
-        if (arg.startsWith("-")) {
+        const numeric = /^-?\d+$/.test(arg);
+        if (arg.startsWith("-") && !numeric) {
           return { args: result, error: `Unknown option: ${arg}` };
         }
-        if (!/^\d+$/.test(arg)) {
+        if (!numeric) {
           return {
             args: result,
             error: `Invalid argument: "${arg}" (expected a year or month number)`,

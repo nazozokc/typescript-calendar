@@ -6,14 +6,17 @@ import {
   isDateInRange,
   isSameDay,
 } from "@typescript-calendar-lib/core";
-import { centerText, centerTextFull, padStartWidth } from "./align.ts";
+import {
+  centerText,
+  centerTextFull,
+  displayWidth,
+  padStartWidth,
+} from "./align.ts";
 import { colorize } from "./ansi.ts";
 import { bottomBorder, innerWidth, separatorRow, topBorder } from "./border.ts";
 import type { CliPalette } from "./theme.ts";
 import { resolveColorScheme, resolveTheme } from "./theme.ts";
 import type { RenderMonthOptions } from "./types.ts";
-
-const CELL_WIDTH = 3;
 
 /**
  * 1ヶ月分のカレンダーテキストを描画する
@@ -42,12 +45,14 @@ export function renderMonth(
   const weekdays = getWeekdayHeaders(locale, weekStart);
   const grid = buildMonthGrid(year, month, weekStart);
 
-  // bracket ハイライトは2桁の日付で `[10]` の4文字になるため、
-  // ハイライト中は全セルを4列に揃えて列ずれを防ぐ
-  const cellWidth =
-    highlight !== undefined && highlightStyle === "bracket"
-      ? CELL_WIDTH + 1
-      : CELL_WIDTH;
+  // セル幅はテーマ指定を基本としつつ、以下を満たすように広げる:
+  // - 曜日ヘッダーの表示幅（fr の "dim." 等がセル幅を超えると列が崩れる）
+  // - bracket ハイライトは2桁の日付で `[10]` の4文字になるため
+  const cellWidth = Math.max(
+    theme.cellWidth,
+    ...weekdays.map(displayWidth),
+    highlight !== undefined && highlightStyle === "bracket" ? 4 : 2,
+  );
 
   const lines: string[] = [];
 

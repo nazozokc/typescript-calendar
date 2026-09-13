@@ -335,6 +335,71 @@ describe("useCalendarState options 更新", () => {
     rerender(createElement(Capture, { today: new Date(2026, 8, 20) }));
     expect(screen.getByTestId("today").textContent).toBe("20");
   });
+
+  test("ナビゲーション後に options を変更しても表示月が初期値に戻らない", () => {
+    let highlight: Date | undefined;
+    function Capture() {
+      const { state, goNext } = useCalendarState({
+        initialYear: 2026,
+        initialMonth: 9,
+        today: TODAY,
+        highlight,
+      });
+      const title = state.monthData.title;
+      return createElement(
+        "button",
+        { type: "button", onClick: goNext, "data-testid": "title" },
+        String(title),
+      );
+    }
+    const { rerender } = render(createElement(Capture));
+    fireEvent.click(screen.getByTestId("title"));
+    expect(screen.getByTestId("title").textContent).toBe("October 2026");
+
+    // highlight の変更は表示月を September に引き戻さない
+    highlight = new Date(2026, 8, 10);
+    rerender(createElement(Capture));
+    expect(screen.getByTestId("title").textContent).toBe("October 2026");
+  });
+
+  test("initialMonth が範囲外でも options 更新後に state と monthData が乖離しない", () => {
+    function Capture() {
+      const { state } = useCalendarState({
+        initialYear: 2026,
+        initialMonth: 13,
+        today: TODAY,
+      });
+      return createElement(
+        "span",
+        { "data-testid": "ym" },
+        `${state.year}-${state.month} ${state.monthData.title}`,
+      );
+    }
+    const { rerender } = render(createElement(Capture));
+    // 初期表示は正規化後の 2027-01
+    expect(screen.getByTestId("ym").textContent).toContain(
+      "2027-1 January 2027",
+    );
+
+    // 別オプション（locale）の変更で再構築されても正規化済みの位置を維持する
+    function CaptureJa() {
+      const { state } = useCalendarState({
+        initialYear: 2026,
+        initialMonth: 13,
+        today: TODAY,
+        locale: "ja",
+      });
+      return createElement(
+        "span",
+        { "data-testid": "ym" },
+        `${state.year}-${state.month} ${state.monthData.title}`,
+      );
+    }
+    rerender(createElement(CaptureJa));
+    expect(screen.getByTestId("ym").textContent).toContain("2027-1");
+    expect(screen.getByTestId("ym").textContent).toContain("1月 2027");
+    expect(screen.getByTestId("ym").textContent).not.toContain("2026-13");
+  });
 });
 
 // ─── Calendar の堅牢性 ─────────────────────────────────
