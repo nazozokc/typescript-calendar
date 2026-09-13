@@ -98,65 +98,40 @@ export interface ColorScheme {
   frame: CellStyle;
 }
 
-const plain = (): CellStyle => ({});
+/** 単色系スキーム生成（title/weekday/today/frame に主色、day は白、dim は灰色） */
+const scheme = (
+  color: number,
+  weekend: number,
+  range: number,
+): ColorScheme => ({
+  title: { fg: color },
+  weekday: { fg: color },
+  day: { fg: 37 },
+  weekend: { fg: weekend },
+  today: { fg: color, bold: true },
+  highlight: { reverse: true },
+  range: { fg: range },
+  dim: { fg: 90 },
+  frame: { fg: color },
+});
 
 export const COLOR_SCHEMES: Record<ColorSchemeName, ColorScheme> = {
   /** 従来どおり。着色は range(黄) と highlight(反転) のみ */
   default: {
-    title: plain(),
-    weekday: plain(),
-    day: plain(),
-    weekend: plain(),
-    today: plain(),
+    title: {},
+    weekday: {},
+    day: {},
+    weekend: {},
+    today: {},
     highlight: { reverse: true },
     range: { fg: 33 },
-    dim: plain(),
-    frame: plain(),
+    dim: {},
+    frame: {},
   },
-  ocean: {
-    title: { fg: 36 },
-    weekday: { fg: 36 },
-    day: { fg: 37 },
-    weekend: { fg: 34 },
-    today: { fg: 36, bold: true },
-    highlight: { reverse: true },
-    range: { fg: 34 },
-    dim: { fg: 90 },
-    frame: { fg: 36 },
-  },
-  forest: {
-    title: { fg: 32 },
-    weekday: { fg: 32 },
-    day: { fg: 37 },
-    weekend: { fg: 90 },
-    today: { fg: 32, bold: true },
-    highlight: { reverse: true },
-    range: { fg: 32 },
-    dim: { fg: 90 },
-    frame: { fg: 32 },
-  },
-  sunset: {
-    title: { fg: 35 },
-    weekday: { fg: 35 },
-    day: { fg: 37 },
-    weekend: { fg: 33 },
-    today: { fg: 35, bold: true },
-    highlight: { reverse: true },
-    range: { fg: 35 },
-    dim: { fg: 90 },
-    frame: { fg: 35 },
-  },
-  mono: {
-    title: { fg: 37 },
-    weekday: { fg: 37 },
-    day: { fg: 37 },
-    weekend: { fg: 90 },
-    today: { fg: 37, bold: true },
-    highlight: { reverse: true },
-    range: { fg: 90 },
-    dim: { fg: 90 },
-    frame: { fg: 90 },
-  },
+  ocean: scheme(36, 34, 34),
+  forest: scheme(32, 90, 32),
+  sunset: scheme(35, 33, 35),
+  mono: scheme(37, 90, 90),
 };
 
 export function resolveColorScheme(

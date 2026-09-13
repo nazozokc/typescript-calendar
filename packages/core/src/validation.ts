@@ -5,22 +5,28 @@ export const MIN_YEAR = 1;
 /** サポートする年の最大値 */
 export const MAX_YEAR = 9999;
 
-/** 年が 1-9999 の整数であることを検証する */
-export function assertValidYear(year: number): void {
-  if (!Number.isInteger(year) || year < MIN_YEAR || year > MAX_YEAR) {
+/** 値が min-max の整数であることを検証する（不正なら RangeError） */
+function assertIntegerInRange(
+  name: string,
+  value: number,
+  min: number,
+  max: number,
+): void {
+  if (!Number.isInteger(value) || value < min || value > max) {
     throw new RangeError(
-      `Invalid year: ${year} (expected an integer between ${MIN_YEAR} and ${MAX_YEAR})`,
+      `Invalid ${name}: ${value} (expected an integer between ${min} and ${max})`,
     );
   }
 }
 
+/** 年が 1-9999 の整数であることを検証する */
+export function assertValidYear(year: number): void {
+  assertIntegerInRange("year", year, MIN_YEAR, MAX_YEAR);
+}
+
 /** 月が 1-12 の整数であることを検証する */
 export function assertValidMonth(month: number): void {
-  if (!Number.isInteger(month) || month < 1 || month > 12) {
-    throw new RangeError(
-      `Invalid month: ${month} (expected an integer between 1 and 12)`,
-    );
-  }
+  assertIntegerInRange("month", month, 1, 12);
 }
 
 /** 年の組み合わせ（year と month）を検証する */

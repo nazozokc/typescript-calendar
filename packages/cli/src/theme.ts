@@ -52,9 +52,9 @@ export const THEMES: Record<ThemeName, CliTheme> = {
 };
 
 export function resolveTheme(theme?: ThemeName | CliTheme): CliTheme {
-  if (theme === undefined) return THEMES.default;
-  if (typeof theme === "string") return THEMES[theme] ?? THEMES.default;
-  return theme;
+  return typeof theme === "string"
+    ? (THEMES[theme] ?? THEMES.default)
+    : (theme ?? THEMES.default);
 }
 
 // ─── カラースキーム ───────────────────────────────────────
@@ -140,9 +140,7 @@ export const COLOR_SCHEMES: Record<ColorSchemeName, CliPalette> = {
 export function resolveColorScheme(
   scheme?: ColorSchemeName | CliPalette,
 ): CliPalette {
-  if (scheme === undefined) return COLOR_SCHEMES.default;
-  if (typeof scheme === "string") {
-    return COLOR_SCHEMES[scheme] ?? COLOR_SCHEMES.default;
-  }
-  return scheme;
+  return typeof scheme === "string"
+    ? (COLOR_SCHEMES[scheme] ?? COLOR_SCHEMES.default)
+    : (scheme ?? COLOR_SCHEMES.default);
 }

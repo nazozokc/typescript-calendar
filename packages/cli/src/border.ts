@@ -7,6 +7,19 @@ export function innerWidth(cellWidth: number, cols: number): number {
   return cols * cellWidth + (cols - 1);
 }
 
+/** セル幅の水平線を cols 個つなげた区切り線を生成する */
+function divider(
+  frame: FrameChars,
+  cellWidth: number,
+  cols: number,
+  left: string,
+  right: string,
+  join: string,
+): string {
+  const segments = Array<string>(cols).fill(frame.h.repeat(cellWidth));
+  return `${left}${segments.join(join)}${right}`;
+}
+
 /** 上枠: ┌────┬────...────┐ */
 export function topBorder(
   frame: FrameChars,
@@ -22,8 +35,14 @@ export function bottomBorder(
   cellWidth: number,
   cols: number,
 ): string {
-  const segments = Array<string>(cols).fill(frame.h.repeat(cellWidth));
-  return `${frame.bottomLeft}${segments.join(frame.footJ)}${frame.bottomRight}`;
+  return divider(
+    frame,
+    cellWidth,
+    cols,
+    frame.bottomLeft,
+    frame.bottomRight,
+    frame.footJ,
+  );
 }
 
 /** 区切り行: ├────┬────...┬────┤ */
@@ -32,6 +51,5 @@ export function separatorRow(
   cellWidth: number,
   cols: number,
 ): string {
-  const segments = Array<string>(cols).fill(frame.h.repeat(cellWidth));
-  return `├${segments.join(frame.j)}┤`;
+  return divider(frame, cellWidth, cols, "├", "┤", frame.j);
 }

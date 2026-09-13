@@ -2,43 +2,27 @@ export type Locale = "en" | "ja" | "es" | "de" | "fr" | "ko" | "zh";
 export type WeekStart = "sunday" | "monday";
 export type HighlightStyle = "bracket" | "reverse";
 
-export interface CalendarOptions {
+interface BaseCalendarOptions {
+  locale?: Locale;
+  weekStart?: WeekStart;
+  highlight?: Date;
+  highlightStyle?: HighlightStyle;
+  range?: { from: Date; to: Date };
+  color?: boolean;
+}
+
+export interface CalendarOptions extends BaseCalendarOptions {
   year: number;
   month: number;
-  locale?: Locale;
-  weekStart?: WeekStart;
-  highlight?: Date;
-  highlightStyle?: HighlightStyle;
-  range?: { from: Date; to: Date };
-  color?: boolean;
 }
 
-export interface CalendarYearOptions {
+export interface CalendarYearOptions extends BaseCalendarOptions {
   year: number;
-  locale?: Locale;
-  weekStart?: WeekStart;
-  highlight?: Date;
-  highlightStyle?: HighlightStyle;
-  range?: { from: Date; to: Date };
-  color?: boolean;
 }
 
-export interface CalendarRangeOptions {
+export interface CalendarRangeOptions extends BaseCalendarOptions {
   from: Date;
   to: Date;
-  locale?: Locale;
-  weekStart?: WeekStart;
-  highlight?: Date;
-  highlightStyle?: HighlightStyle;
-  range?: { from: Date; to: Date };
-  color?: boolean;
 }
 
-export interface RenderMonthOptions {
-  locale?: Locale;
-  weekStart?: WeekStart;
-  highlight?: Date;
-  highlightStyle?: HighlightStyle;
-  range?: { from: Date; to: Date };
-  color?: boolean;
-}
+export interface RenderMonthOptions extends BaseCalendarOptions {}

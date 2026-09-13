@@ -38,11 +38,10 @@ export function buildMonthData(
   assertValidDate(today);
   if (highlight !== undefined) assertValidDate(highlight);
 
-  const normalizedRange = range;
+  // from > to の逆転 range も isDateInRange が RangeError を投げる
   if (range !== undefined) {
     assertValidDate(range.from);
     assertValidDate(range.to);
-    // from > to の逆転 range は不正入力として RangeError（isDateInRange が投げる）
   }
 
   const title = `${getMonthName(locale, nm)} ${ny}`;
@@ -72,7 +71,7 @@ export function buildMonthData(
         isCurrentMonth: true,
         isToday: isSameDay(date, today),
         isHighlight: highlight !== undefined && isSameDay(date, highlight),
-        isInRange: isDateInRange(date, normalizedRange),
+        isInRange: isDateInRange(date, range),
       };
     }),
   );
