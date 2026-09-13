@@ -10,6 +10,7 @@ A calendar library written in TypeScript. Render month, year, or arbitrary date-
 - **Highlight today** — bracket (`[8]`) or reverse-video styles
 - **Color ranges** — highlight specific dates with range coloring (opt-in)
 - **Interactive React** — `useCalendarState` hook + clickable/keyboard cells
+- **Interactive Svelte 5** — the same headless state, as a runes-based `useCalendarState` hook + `Calendar` component
 - **Headless TUI state** — cursor, selection, and navigation state machine for any TUI framework
 - **Zero runtime dependencies** — plain text by default; ANSI colors only when enabled
 
@@ -132,7 +133,7 @@ calendar({
 
 When a date is both highlighted and in range, the highlight takes precedence.
 
-`range.from` must not be after `range.to` — a reversed range throws a `RangeError` in every layer (`core`, the CLI, `buildMonthData`, and React).
+`range.from` must not be after `range.to` — a reversed range throws a `RangeError` in every layer (`core`, the CLI, `buildMonthData`, React, and Svelte).
 
 By default (`color: false`) the output is clean plain text with no ANSI escape codes, so it's safe to pipe into files or other tools.
 

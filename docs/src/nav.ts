@@ -43,6 +43,7 @@ export const SIDEBAR: NavGroup[] = [
       { text: "core", link: "/packages/core" },
       { text: "cli", link: "/packages/cli" },
       { text: "react", link: "/packages/react" },
+      { text: "svelte", link: "/packages/svelte" },
       { text: "tui", link: "/packages/tui" },
     ],
   },
@@ -52,6 +53,7 @@ export const PACKAGES: NavItem[] = [
   { text: "core", link: "/packages/core" },
   { text: "cli", link: "/packages/cli" },
   { text: "react", link: "/packages/react" },
+  { text: "svelte", link: "/packages/svelte" },
   { text: "tui", link: "/packages/tui" },
 ];
 
@@ -64,6 +66,8 @@ export const TITLES: Record<string, string> = {
   "/packages/core": "@typescript-calendar-lib/core | typescript-calendar-lib",
   "/packages/cli": "@typescript-calendar-lib/cli | typescript-calendar-lib",
   "/packages/react": "@typescript-calendar-lib/react | typescript-calendar-lib",
+  "/packages/svelte":
+    "@typescript-calendar-lib/svelte | typescript-calendar-lib",
   "/packages/tui": "@typescript-calendar-lib/tui | typescript-calendar-lib",
 };
 

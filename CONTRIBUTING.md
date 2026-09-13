@@ -31,7 +31,7 @@ pnpm hooks:install   # enable git hooks (commit message + typecheck/test)
 | `pnpm build` | Build all packages with tsdown (`pnpm -r run build`) |
 | `pnpm lint` | Biome check across the repo |
 | `pnpm lint:fix` | Biome check with autofix |
-| `pnpm typecheck` | TypeScript typecheck from the root tsconfig |
+| `pnpm typecheck` | TypeScript typecheck from the root tsconfig + svelte-check for the svelte package |
 | `pnpm test` | Run the vitest suite |
 | `pnpm test:coverage` | Run vitest with v8 coverage report |
 | `pnpm docs:dev` | Start the docs SPA dev server (Bun) |
@@ -40,7 +40,7 @@ pnpm hooks:install   # enable git hooks (commit message + typecheck/test)
 
 ## Repository structure
 
-pnpm workspace monorepo with four packages:
+pnpm workspace monorepo with five packages:
 
 ```
 packages/
@@ -48,6 +48,7 @@ packages/
   cli/     # CLI binary (`typescript-calendar-lib`) and text rendering
   tui/     # Framework-agnostic headless state (cursor, selection, navigation)
   react/   # React component + useCalendarState hook, calendar.css
+  svelte/  # Svelte 5 component + useCalendarState hook, calendar.css
 docs/      # Docs SPA (Bun build, deployed to GitHub Pages)
 ```
 
@@ -105,7 +106,14 @@ pnpm test
 pnpm test:coverage   # v8 coverage with thresholds (statements/lines 75%, functions 80%, branches 60%)
 ```
 
-The suite covers date utilities (leap years, month boundaries), locale headers, grid layout, highlight/range rendering, and public API integration. Package-specific environments (e.g. jsdom for `react`) are configured per-package in `vitest.config.ts`.
+The suite covers date utilities (leap years, month boundaries), locale headers, grid layout, highlight/range rendering, and public API integration. Package-specific environments (e.g. jsdom for `react` and `svelte`) are configured per-package in `vitest.config.ts`.
+
+The `svelte` package needs extra care:
+
+- Relative imports use `.js` extensions (Node ESM convention required by `svelte-package`).
+- `src/` holds only publishable files; tests and the `HookHarness.svelte` helper live in `test/` (everything under `src/` is shipped).
+- Build with `svelte-package -i src` (see `packages/svelte/svelte.config.js`). The repo pins a `typescript@^5.9` devDependency and a `packageExtensions` patch in `pnpm-workspace.yaml` because svelte3tooling (svelte2tsx/svelte-check) is incompatible with the repo's tsgo (`typescript@^7`).
+- `useCalendarState` accepts a plain options object (snapshot) or a getter function `() => options` for reactive props/`$state` values. Don't pass a `$derived` object from another module — derived tracking does not cross module boundaries.
 
 ## CI
 
