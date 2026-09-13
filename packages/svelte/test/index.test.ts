@@ -1,0 +1,241 @@
+import { cleanup, fireEvent, render, screen } from "@testing-library/svelte";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import "@testing-library/jest-dom/vitest";
+import Calendar from "../src/Calendar.svelte";
+import { isSizeName } from "../src/size.js";
+import HookHarness from "./HookHarness.svelte";
+
+const TODAY = new Date(2026, 8, 15); // 2026-09-15
+
+afterEach(cleanup);
+
+// ─── useCalendarState ────────────────────────────────────
+
+describe("useCalendarState", () => {
+  test("初期状態は指定月を表示", () => {
+    render(HookHarness, {
+      props: { initialYear: 2026, initialMonth: 9, today: TODAY },
+    });
+    expect(screen.getByTestId("title").textContent).toBe("September 2026");
+  });
+
+  test("カーソルは今日の日付を指す", () => {
+    render(HookHarness, {
+      props: { initialYear: 2026, initialMonth: 9, today: TODAY },
+    });
+    expect(screen.getByTestId("cursor").textContent).toBe(TODAY.toISOString());
+  });
+
+  test("翌月に移動できる", async () => {
+    render(HookHarness, {
+      props: { initialYear: 2026, initialMonth: 9, today: TODAY },
+    });
+    await fireEvent.click(screen.getByTestId("next"));
+    expect(screen.getByTestId("title").textContent).toBe("October 2026");
+  });
+
+  test("前月に移動できる", async () => {
+    render(HookHarness, {
+      props: { initialYear: 2026, initialMonth: 9, today: TODAY },
+    });
+    await fireEvent.click(screen.getByTestId("prev"));
+    expect(screen.getByTestId("title").textContent).toBe("August 2026");
+  });
+
+  test("今日にジャンプできる", async () => {
+    render(HookHarness, {
+      props: { initialYear: 2026, initialMonth: 9, today: TODAY },
+    });
+    await fireEvent.click(screen.getByTestId("next"));
+    await fireEvent.click(screen.getByTestId("next"));
+    await fireEvent.click(screen.getByTestId("today"));
+    expect(screen.getByTestId("title").textContent).toBe("September 2026");
+  });
+
+  test("カーソルを右に動かせる", async () => {
+    render(HookHarness, {
+      props: { initialYear: 2026, initialMonth: 9, today: TODAY },
+    });
+    const before = screen.getByTestId("cursor").textContent;
+    await fireEvent.click(screen.getByTestId("right"));
+    const after = screen.getByTestId("cursor").textContent;
+    expect(after).not.toBe(before);
+  });
+
+  test("日付を選択できる", async () => {
+    render(HookHarness, {
+      props: { initialYear: 2026, initialMonth: 9, today: TODAY },
+    });
+    await fireEvent.click(screen.getByTestId("select"));
+    expect(screen.getByTestId("selected").textContent).toBe(
+      TODAY.toISOString(),
+    );
+  });
+});
+
+// ─── useCalendarState options 更新 ──────────────────────
+
+describe("useCalendarState options 更新", () => {
+  test("highlight の変更が状態に反映される", async () => {
+    const first = new Date(2026, 8, 10);
+    const result = render(HookHarness, {
+      props: {
+        initialYear: 2026,
+        initialMonth: 9,
+        today: TODAY,
+        highlight: first,
+      },
+    });
+    expect(screen.getByTestId("highlight").textContent).toBe(
+      first.toISOString(),
+    );
+
+    const next = new Date(2026, 8, 11);
+    await result.rerender({ highlight: next });
+    expect(screen.getByTestId("highlight").textContent).toBe(
+      next.toISOString(),
+    );
+  });
+
+  test("range の変更が状態に反映される", async () => {
+    const result = render(HookHarness, {
+      props: {
+        initialYear: 2026,
+        initialMonth: 9,
+        today: TODAY,
+        range: { from: new Date(2026, 8, 1), to: new Date(2026, 8, 15) },
+      },
+    });
+    expect(screen.getByTestId("range-count").textContent).toBe("15");
+
+    await result.rerender({
+      range: { from: new Date(2026, 8, 1), to: new Date(2026, 8, 10) },
+    });
+    expect(screen.getByTestId("range-count").textContent).toBe("10");
+  });
+
+  test("today の変更が状態に反映される", async () => {
+    const result = render(HookHarness, {
+      props: { initialYear: 2026, initialMonth: 9, today: TODAY },
+    });
+    expect(screen.getByTestId("today-cell").textContent).toBe("15");
+
+    await result.rerender({ today: new Date(2026, 8, 20) });
+    expect(screen.getByTestId("today-cell").textContent).toBe("20");
+  });
+
+  test("ナビゲーション後に options を変更しても表示月が初期値に戻らない", async () => {
+    const result = render(HookHarness, {
+      props: { initialYear: 2026, initialMonth: 9, today: TODAY },
+    });
+    await fireEvent.click(screen.getByTestId("next"));
+    expect(screen.getByTestId("title").textContent).toBe("October 2026");
+
+    // highlight の変更は表示月を September に引き戻さない
+    await result.rerender({ highlight: new Date(2026, 8, 10) });
+    expect(screen.getByTestId("title").textContent).toBe("October 2026");
+  });
+
+  test("initialMonth が範囲外でも options 更新後に state と monthData が乖離しない", async () => {
+    const result = render(HookHarness, {
+      props: { initialYear: 2026, initialMonth: 13, today: TODAY },
+    });
+    expect(screen.getByTestId("title").textContent).toContain("January 2027");
+
+    // 別オプション（locale）の変更で再構築されても正規化済みの位置を維持する
+    await result.rerender({ locale: "ja" });
+    expect(screen.getByTestId("title").textContent).toBe("1月 2027");
+  });
+});
+
+// ─── Calendar component ─────────────────────────────────
+
+describe("Calendar", () => {
+  test("タイトルとセルが描画される", () => {
+    const { container } = render(Calendar, {
+      props: { year: 2026, month: 9, today: TODAY },
+    });
+    expect(screen.getByText("September 2026")).toBeTruthy();
+    expect(container.querySelectorAll("td")).not.toHaveLength(0);
+    expect(container.querySelectorAll("button")).toHaveLength(0);
+  });
+
+  test("interactive モードではセル内に button がレンダリングされる", () => {
+    render(Calendar, {
+      props: { year: 2026, month: 9, interactive: true, today: TODAY },
+    });
+    const buttons = screen.getAllByRole("button");
+    expect(buttons.length).toBeGreaterThan(0);
+    // テーブルセルのセマンティクスを保つため button は td の内側にある
+    expect(buttons[0]!.closest("td")).not.toBeNull();
+  });
+
+  test("セルクリックで onDateClick が呼ばれる", () => {
+    const onClick = vi.fn();
+    render(Calendar, {
+      props: {
+        year: 2026,
+        month: 9,
+        interactive: true,
+        today: TODAY,
+        onDateClick: onClick,
+      },
+    });
+    const cells = screen.getAllByRole("button");
+    fireEvent.click(cells[0]!);
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(onClick.mock.calls[0]![0]).toBeInstanceOf(Date);
+  });
+
+  test("セルホバーで onDateHover が呼ばれる", () => {
+    const onHover = vi.fn();
+    render(Calendar, {
+      props: {
+        year: 2026,
+        month: 9,
+        interactive: true,
+        today: TODAY,
+        onDateHover: onHover,
+      },
+    });
+    const cells = screen.getAllByRole("button");
+    fireEvent.mouseEnter(cells[0]!);
+    expect(onHover).toHaveBeenCalledTimes(1);
+  });
+
+  test("interactive モードで calendar-interactive クラスがつく", () => {
+    const { container } = render(Calendar, {
+      props: { year: 2026, month: 9, interactive: true, today: TODAY },
+    });
+    expect(container.firstChild).toHaveClass("calendar-interactive");
+  });
+
+  test("逆転した range は RangeError", () => {
+    expect(() =>
+      render(Calendar, {
+        props: {
+          year: 2026,
+          month: 9,
+          range: { from: new Date(2026, 8, 15), to: new Date(2026, 8, 1) },
+        },
+      }),
+    ).toThrow(RangeError);
+  });
+
+  test("isSizeName は組み込みサイズ名のみ true", () => {
+    expect(isSizeName("sm")).toBe(true);
+    expect(isSizeName("md")).toBe(true);
+    expect(isSizeName("lg")).toBe(true);
+    expect(isSizeName("xl" as never)).toBe(false);
+    expect(isSizeName({ width: 48 })).toBe(false);
+  });
+
+  test("未知のサイズ名文字列でもクラッシュしない", () => {
+    const { container } = render(Calendar, {
+      props: { year: 2026, month: 9, size: "xl" as never },
+    });
+    const root = container.firstChild as HTMLElement;
+    expect(root.className).not.toContain("calendar-size");
+    expect(root.querySelectorAll("td")).not.toHaveLength(0);
+  });
+});

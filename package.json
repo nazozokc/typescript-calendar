@@ -7,7 +7,7 @@
     "build": "pnpm -r run build",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "typecheck": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json && pnpm --filter @typescript-calendar-lib/svelte run typecheck",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "docs:dev": "bun --hot ./docs/server.ts",
