@@ -20,6 +20,7 @@ bun add @typescript-calendar-lib/react
 
 ```tsx
 import { Calendar } from "@typescript-calendar-lib/react";
+import "@typescript-calendar-lib/react/calendar.css"; // required — component styles
 
 export function App() {
   return (
@@ -80,6 +81,7 @@ For full interactivity (cursor movement, month navigation, selection), use the `
 
 ```tsx
 import { Calendar, useCalendarState } from "@typescript-calendar-lib/react";
+import "@typescript-calendar-lib/react/calendar.css"; // required — component styles
 
 function App() {
   const {

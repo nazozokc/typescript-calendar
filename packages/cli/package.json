@@ -3,21 +3,30 @@
   "version": "0.1.1",
   "type": "module",
   "bin": {
-    "typescript-calendar-lib": "src/bin.ts"
+    "typescript-calendar-lib": "./dist/bin.js"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/nazozokc/typescript-calendar-lib"
   },
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "files": [
-    "src",
-    "!src/*.test.ts"
+    "dist"
   ],
+  "scripts": {
+    "build": "tsdown",
+    "prepack": "pnpm build"
+  },
   "dependencies": {
-    "@typescript-calendar-lib/core": "workspace:*",
-    "cli-table3": "^0.6.5"
+    "@typescript-calendar-lib/core": "workspace:*"
   },
   "peerDependencies": {
     "typescript": "^5"
