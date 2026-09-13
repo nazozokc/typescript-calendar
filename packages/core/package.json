@@ -2,6 +2,10 @@
   "name": "@typescript-calendar-lib/core",
   "version": "0.1.1",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nazozokc/typescript-calendar-lib"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
