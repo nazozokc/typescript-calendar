@@ -1,4 +1,4 @@
-name: publish-tui
+name: publish-svelte
 
 on:
   release:
@@ -15,7 +15,7 @@ jobs:
         env:
           RELEASE_BODY: ${{ github.event.release.body }}
         run: |
-          pkg="tui"
+          pkg="svelte"
           line="$(printf '%s\n' "$RELEASE_BODY" | grep -iE '^[[:space:]]*publish[[:space:]]*:' | head -1)"
           if [ -z "$line" ]; then
             enabled=true
@@ -26,7 +26,7 @@ jobs:
           fi
           echo "enabled=${enabled}" >> "$GITHUB_OUTPUT"
 
-  publish-tui:
+  publish-svelte:
     needs: check
     if: needs.check.outputs.enabled == 'true'
     runs-on: ubuntu-latest
@@ -66,7 +66,7 @@ jobs:
 
       - name: Publish
         run: |
-          pnpm --filter "@typescript-calendar-lib/tui" publish \
+          pnpm --filter "@typescript-calendar-lib/svelte" publish \
             --no-git-checks \
             --access public \
             --registry https://registry.npmjs.org/
