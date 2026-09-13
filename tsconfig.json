@@ -23,5 +23,5 @@
       "@typescript-calendar-lib/core": ["./packages/core/src/index.ts"]
     }
   },
-  "exclude": ["docs/dist"]
+  "exclude": ["docs/dist", "**/dist"]
 }

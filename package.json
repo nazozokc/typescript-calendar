@@ -4,6 +4,7 @@
   "packageManager": "pnpm@11.25.0",
   "scripts": {
     "hooks:install": "git config core.hooksPath .githooks",
+    "build": "pnpm -r run build",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "typecheck": "tsc -p tsconfig.json",
@@ -21,6 +22,7 @@
     "@vitest/coverage-v8": "^5.0.0",
     "highlight.js": "^11.12.0",
     "svelte": "^5.57.0",
+    "tsdown": "^0.23.0",
     "typescript": "^7",
     "vitest": "^5"
   },
