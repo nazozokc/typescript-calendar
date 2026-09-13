@@ -95,8 +95,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Dry-run publish all packages
+      - name: Pack all packages and verify dist contents
         run: |
-          for pkg in cli tui react; do
-            pnpm --filter "@typescript-calendar-lib/${pkg}" publish --dry-run --no-git-checks
+          set -e
+          mkdir -p /tmp/tarballs
+          for pkg in core cli tui react; do
+            pnpm --filter "@typescript-calendar-lib/${pkg}" pack --pack-destination /tmp/tarballs
+          done
+          for tarball in /tmp/tarballs/*.tgz; do
+            tar -tzf "$tarball" | grep -q "dist/index.js" || { echo "missing dist in $tarball"; exit 1; }
           done

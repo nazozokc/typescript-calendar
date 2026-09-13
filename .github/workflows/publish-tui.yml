@@ -61,6 +61,9 @@ jobs:
             pnpm --filter "@typescript-calendar-lib/${pkg}" pkg set "version=${version}"
           done
 
+      - name: Build packages
+        run: pnpm -r run build
+
       - name: Publish
         run: |
           pnpm --filter "@typescript-calendar-lib/tui" publish \
