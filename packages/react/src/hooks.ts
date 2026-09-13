@@ -103,6 +103,11 @@ export function useCalendarState(
   const prevOptions = useRef(options);
   useEffect(() => {
     if (sameOptionsValue(prevOptions.current, options)) return;
+    // initialYear/initialMonth は「初期値」。値が実際に変わった時だけ適用し、
+    // 変わっていない場合はナビゲーション後の現在位置 (prev.year/month) を維持する
+    // （options 変更で表示月が初期値に引き戻されるのを防ぐ）。
+    const prevInitialYear = prevOptions.current.initialYear;
+    const prevInitialMonth = prevOptions.current.initialMonth;
     prevOptions.current = options;
     setState((prev) => {
       const resolved = resolveOptions({
@@ -113,8 +118,17 @@ export function useCalendarState(
         highlight: options.highlight,
         range: options.range,
       });
-      const year = options.initialYear ?? prev.year;
-      const month = options.initialMonth ?? prev.month;
+      const year =
+        options.initialYear !== undefined &&
+        options.initialYear !== prevInitialYear
+          ? options.initialYear
+          : prev.year;
+      const month =
+        options.initialMonth !== undefined &&
+        options.initialMonth !== prevInitialMonth
+          ? options.initialMonth
+          : prev.month;
+      // 範囲外の month は rebuildState 側で正規化される（state と monthData の乖離を防ぐ）
       const monthData = buildMonthData(year, month, resolved);
       return rebuildState(
         year,

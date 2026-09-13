@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { displayWidth } from "./align.ts";
 import { renderMonth } from "./render.ts";
 
 describe("renderMonth", () => {
@@ -182,5 +183,46 @@ describe("renderMonth - color schemes", () => {
     // @ts-expect-error 不明なカラースキーム名
     const out = renderMonth(2026, 9, { colorScheme: "unknown", ...base });
     expect(out.split("\n")[1]).toBe("Sun Mon Tue Wed Thu Fri Sat");
+  });
+});
+
+describe("renderMonth - セル幅とロケール", () => {
+  test("fr のように曜日ヘッダーが3文字を超えるロケールでも列が揃う", () => {
+    const lines = renderMonth(2026, 9, { locale: "fr" }).split("\n");
+    const widths = lines.map((l) => displayWidth(l));
+    // ヘッダー行（dim. lun. ...）と全グリッド行が同じ幅になる（タイトルは中央揃えで短い）
+    const gridWidth = widths[2]!;
+    for (let i = 1; i < widths.length; i++) {
+      expect(widths[i]).toBe(gridWidth);
+    }
+  });
+
+  test("fr + modern テーマでは枠内に曜日ヘッダーが収まる", () => {
+    const lines = renderMonth(2026, 9, {
+      locale: "fr",
+      theme: "modern",
+      today: new Date(2026, 8, 1),
+    }).split("\n");
+    const widths = lines.map((l) => displayWidth(l));
+    expect(widths[1]!).toBe(widths[0]!); // タイトル行 = 上枠
+    expect(widths[3]!).toBe(widths[0]!); // 曜日ヘッダー = 上枠
+    expect(widths[5]!).toBe(widths[0]!); // 日付行 = 上枠
+  });
+
+  test("カスタムテーマの cellWidth が反映される", () => {
+    const out = renderMonth(2026, 9, {
+      theme: {
+        cellWidth: 5,
+        separator: " ",
+        frame: null,
+      },
+      today: new Date(2026, 8, 1),
+    });
+    const lines = out.split("\n");
+    // 曜日ヘッダー行は右詰め5幅×7列 + 区切り6 = 41
+    expect(lines[1]).toBe("  Sun   Mon   Tue   Wed   Thu   Fri   Sat");
+    expect(displayWidth(lines[1]!)).toBe(41);
+    // 日付行も同じ幅に揃う
+    expect(displayWidth(lines[2]!)).toBe(41);
   });
 });

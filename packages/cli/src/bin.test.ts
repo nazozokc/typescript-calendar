@@ -110,6 +110,17 @@ describe("parseArgs", () => {
     expect(result.error).toBeDefined();
   });
 
+  test("負の年は Unknown option ではなく年範囲エラーになる", () => {
+    const result = parseArgs(["-1"]);
+    expect(result.error).toContain("Invalid year");
+    expect(result.error).not.toContain("Unknown option");
+  });
+
+  test("負の月は Unknown option ではなく月範囲エラーになる", () => {
+    const result = parseArgs(["2026", "-5"]);
+    expect(result.error).toContain("Invalid month");
+  });
+
   test("不正な --locale はエラー", () => {
     const result = parseArgs(["--locale", "xx"]);
     expect(result.error).toContain("Invalid locale");

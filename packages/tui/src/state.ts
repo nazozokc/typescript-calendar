@@ -52,6 +52,7 @@ export function createCalendarState(
  * カーソル/選択状態を保ったまま、新しい年月で状態を再構築する。
  *
  * ナビゲーション（月移動・年移動・ジャンプ）から利用される。
+ * `year`/`month` は shiftMonth で正規化される（例: month=13 → 翌年1月）。
  * `monthData` を渡すと構築を省略できる（検索済みの月データを使い回す場合）。
  */
 export function rebuildState(
@@ -60,14 +61,16 @@ export function rebuildState(
   cursor: { row: number; col: number } | null,
   selectedDate: Date | null,
   options: ResolvedOptions,
-  monthData: MonthData = buildMonthData(year, month, options),
+  monthData?: MonthData,
 ): CalendarState {
+  const { year: ny, month: nm } = shiftMonth(year, month, 0);
+  const data = monthData ?? buildMonthData(ny, nm, options);
   return {
-    year,
-    month,
-    cursor: clampCursor(cursor, monthData),
+    year: ny,
+    month: nm,
+    cursor: clampCursor(cursor, data),
     selectedDate,
     options,
-    monthData,
+    monthData: data,
   };
 }

@@ -151,6 +151,17 @@ describe("goToMonth / goToToday", () => {
     expect(jumped.monthData.title).toBe("9月 2026");
     expect(jumped.selectedDate).toEqual(TODAY);
   });
+
+  test("サポート範囲外の日付はクランプされ state と monthData が乖離しない", () => {
+    const state = createCalendarState({ today: TODAY });
+    // year 10000 は有効な Date だが、クランプ後に表示できない日付なのでカーソルは null
+    const jumped = goToDate(state, new Date(10000, 0, 1));
+    expect(jumped.year).toBe(9999);
+    expect(jumped.month).toBe(12);
+    expect(jumped.monthData.year).toBe(9999);
+    expect(jumped.monthData.month).toBe(12);
+    expect(jumped.cursor).toBeNull();
+  });
 });
 
 describe("ナビゲーションの入力検証", () => {

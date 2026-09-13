@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { getCursorDate } from "./cursor.ts";
-import { createCalendarState } from "./state.ts";
+import { createCalendarState, rebuildState } from "./state.ts";
 
 const TODAY = new Date(2026, 8, 15); // 2026-09-15
 
@@ -94,5 +94,34 @@ describe("createCalendarState", () => {
     expect(state.year).toBe(9999);
     expect(state.month).toBe(12);
     expect(state.monthData.title).toBe("December 9999");
+  });
+});
+
+describe("rebuildState", () => {
+  test("範囲外の month も正規化され、state と monthData が乖離しない", () => {
+    const base = createCalendarState({ today: TODAY });
+    const rebuilt = rebuildState(2026, 13, base.cursor, null, base.options);
+    expect(rebuilt.year).toBe(2027);
+    expect(rebuilt.month).toBe(1);
+    expect(rebuilt.monthData.year).toBe(2027);
+    expect(rebuilt.monthData.month).toBe(1);
+    expect(rebuilt.monthData.title).toBe("January 2027");
+  });
+
+  test("範囲外の year もクランプされる", () => {
+    const base = createCalendarState({ today: TODAY });
+    const rebuilt = rebuildState(10000, 1, base.cursor, null, base.options);
+    expect(rebuilt.year).toBe(9999);
+    expect(rebuilt.month).toBe(12);
+    expect(rebuilt.monthData.year).toBe(9999);
+    expect(rebuilt.monthData.month).toBe(12);
+  });
+
+  test("正規な年月は従来どおり再構築される", () => {
+    const base = createCalendarState({ today: TODAY });
+    const rebuilt = rebuildState(2026, 10, base.cursor, null, base.options);
+    expect(rebuilt.year).toBe(2026);
+    expect(rebuilt.month).toBe(10);
+    expect(rebuilt.cursor).toEqual(base.cursor);
   });
 });
