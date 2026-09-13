@@ -14,7 +14,6 @@ import {
 } from "./align.ts";
 import { colorize } from "./ansi.ts";
 import { bottomBorder, innerWidth, separatorRow, topBorder } from "./border.ts";
-import type { CliPalette } from "./theme.ts";
 import { resolveColorScheme, resolveTheme } from "./theme.ts";
 import type { RenderMonthOptions } from "./types.ts";
 
@@ -40,10 +39,12 @@ export function renderMonth(
 
   const theme = resolveTheme(themeOption);
   const palette = resolveColorScheme(schemeOption);
+  const frame = theme.frame;
 
   const title = `${getMonthName(locale, month)} ${year}`;
   const weekdays = getWeekdayHeaders(locale, weekStart);
   const grid = buildMonthGrid(year, month, weekStart);
+  const cols = weekdays.length;
 
   // セル幅はテーマ指定を基本としつつ、以下を満たすように広げる:
   // - 曜日ヘッダーの表示幅（fr の "dim." 等がセル幅を超えると列が崩れる）
@@ -54,16 +55,45 @@ export function renderMonth(
     highlight !== undefined && highlightStyle === "bracket" ? 4 : 2,
   );
 
+  // 枠なしテーマは separator、枠ありテーマは縦線でセルを繋ぐ
+  const sep = frame === null ? theme.separator : frame.v;
+
+  /** 1セルを描画する（day は日数または null=空欄） */
+  const renderCell = (day: number | null): string => {
+    if (day === null) return " ".repeat(cellWidth);
+
+    const date = createDate(year, month - 1, day);
+    const isHighlight = highlight !== undefined && isSameDay(date, highlight);
+    const isInRange = isDateInRange(date, range);
+    const isToday = isSameDay(date, today);
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+    const text = (
+      isHighlight && highlightStyle === "bracket" ? `[${day}]` : String(day)
+    ).padStart(cellWidth);
+
+    let code: number | undefined;
+    if (isHighlight && highlightStyle === "reverse") {
+      code = palette.highlight ?? 7;
+    } else if (isInRange && !isHighlight) {
+      code = palette.range ?? 33;
+    } else if (isToday && palette.today !== undefined) {
+      code = palette.today;
+    } else if (isWeekend && palette.weekend !== undefined) {
+      code = palette.weekend;
+    } else if (palette.day !== undefined) {
+      code = palette.day;
+    }
+
+    return colorize(text, code, color);
+  };
+
   const lines: string[] = [];
 
-  if (theme.frame === null) {
+  if (frame === null) {
     // ── 枠なし（default） ──
-    const sep = theme.separator;
-    const totalWidth =
-      weekdays.length * cellWidth + (weekdays.length - 1) * sep.length;
-
+    const totalWidth = cols * cellWidth + (cols - 1) * sep.length;
     lines.push(centerText(title, totalWidth));
-
     lines.push(
       weekdays
         .map((d) =>
@@ -71,51 +101,20 @@ export function renderMonth(
         )
         .join(sep),
     );
-
-    for (const row of grid) {
-      if (row.every((d) => d === null)) continue;
-
-      const cells = row.map((day) =>
-        renderCell(
-          year,
-          month,
-          day,
-          highlight,
-          highlightStyle,
-          range,
-          today,
-          color,
-          palette,
-          cellWidth,
-        ),
-      );
-
-      lines.push(cells.join(sep));
-    }
   } else {
     // ── 枠あり（modern） ──
-    const frame = theme.frame;
-
     lines.push(
-      colorize(
-        topBorder(frame, cellWidth, weekdays.length),
-        palette.frame,
-        color,
-      ),
+      colorize(topBorder(frame, cellWidth, cols), palette.frame, color),
     );
     lines.push(
       colorize(
-        `${frame.v}${centerTextFull(title, innerWidth(cellWidth, weekdays.length))}${frame.v}`,
+        `${frame.v}${centerTextFull(title, innerWidth(cellWidth, cols))}${frame.v}`,
         palette.title,
         color,
       ),
     );
     lines.push(
-      colorize(
-        separatorRow(frame, cellWidth, weekdays.length),
-        palette.frame,
-        color,
-      ),
+      colorize(separatorRow(frame, cellWidth, cols), palette.frame, color),
     );
     lines.push(
       colorize(
@@ -125,89 +124,21 @@ export function renderMonth(
       ),
     );
     lines.push(
-      colorize(
-        separatorRow(frame, cellWidth, weekdays.length),
-        palette.frame,
-        color,
-      ),
+      colorize(separatorRow(frame, cellWidth, cols), palette.frame, color),
     );
+  }
 
-    for (const row of grid) {
-      if (row.every((d) => d === null)) continue;
+  for (const row of grid) {
+    if (row.every((d) => d === null)) continue;
+    const cells = row.map(renderCell).join(sep);
+    lines.push(frame === null ? cells : `${frame.v}${cells}${frame.v}`);
+  }
 
-      const cells = row.map((day) =>
-        renderCell(
-          year,
-          month,
-          day,
-          highlight,
-          highlightStyle,
-          range,
-          today,
-          color,
-          palette,
-          cellWidth,
-        ),
-      );
-
-      lines.push(`${frame.v}${cells.join(frame.v)}${frame.v}`);
-    }
-
+  if (frame !== null) {
     lines.push(
-      colorize(
-        bottomBorder(frame, cellWidth, weekdays.length),
-        palette.frame,
-        color,
-      ),
+      colorize(bottomBorder(frame, cellWidth, cols), palette.frame, color),
     );
   }
 
   return lines.join("\n");
-}
-
-// ─── セル ─────────────────────────────────────────────────
-
-function renderCell(
-  year: number,
-  month: number,
-  day: number | null,
-  highlight: Date | undefined,
-  highlightStyle: "bracket" | "reverse",
-  range: { from: Date; to: Date } | undefined,
-  today: Date,
-  color: boolean,
-  palette: CliPalette,
-  cellWidth: number,
-): string {
-  if (day === null) {
-    return " ".repeat(cellWidth);
-  }
-
-  const date = createDate(year, month - 1, day);
-  const isHighlight = highlight !== undefined && isSameDay(date, highlight);
-  const isInRange = isDateInRange(date, range);
-  const isToday = isSameDay(date, today);
-  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-
-  let text: string;
-  if (isHighlight && highlightStyle === "bracket") {
-    text = `[${day}]`.padStart(cellWidth);
-  } else {
-    text = String(day).padStart(cellWidth);
-  }
-
-  let code: number | undefined;
-  if (isHighlight && highlightStyle === "reverse") {
-    code = palette.highlight ?? 7;
-  } else if (isInRange && !isHighlight) {
-    code = palette.range ?? 33;
-  } else if (isToday && palette.today !== undefined) {
-    code = palette.today;
-  } else if (isWeekend && palette.weekend !== undefined) {
-    code = palette.weekend;
-  } else if (palette.day !== undefined) {
-    code = palette.day;
-  }
-
-  return colorize(text, code, color);
 }

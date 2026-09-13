@@ -30,35 +30,35 @@ export function buildMonthGrid(
   assertValidYearMonth(year, month);
   assertValidWeekStart(weekStart);
 
-  const first = firstDayOfMonth(year, month);
-  const last = lastDayOfMonth(year, month);
-  const daysInMonth = last.getDate();
-
-  let startDayOfWeek = first.getDay();
+  const daysInMonth = lastDayOfMonth(year, month).getDate();
+  let skip = firstDayOfMonth(year, month).getDay();
   if (weekStart === "monday") {
-    startDayOfWeek = (startDayOfWeek + 6) % 7;
+    skip = (skip + 6) % 7;
   }
 
   const grid: (number | null)[][] = [];
-  let currentDay = 1;
-
+  let day = 1;
   for (let week = 0; week < 6; week++) {
     const row: (number | null)[] = [];
-    for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
-      if (
-        (week === 0 && dayOfWeek < startDayOfWeek) ||
-        currentDay > daysInMonth
-      ) {
+    for (let col = 0; col < 7; col++) {
+      if (day > daysInMonth || (week === 0 && col < skip)) {
         row.push(null);
       } else {
-        row.push(currentDay);
-        currentDay++;
+        row.push(day++);
       }
     }
     grid.push(row);
   }
-
   return grid;
+}
+
+/** 範囲（from/to）が有効であることを検証する */
+function assertValidRange(from: Date, to: Date): void {
+  assertValidDate(from);
+  assertValidDate(to);
+  if (from.getTime() > to.getTime()) {
+    throw new RangeError("Invalid range: from must not be after to");
+  }
 }
 
 /** 日付が範囲内に含まれるか */
@@ -67,16 +67,10 @@ export function isDateInRange(
   range?: { from: Date; to: Date },
 ): boolean {
   if (!range) return false;
+  assertValidRange(range.from, range.to);
   assertValidDate(date);
-  assertValidDate(range.from);
-  assertValidDate(range.to);
-  const from = range.from.getTime();
-  const to = range.to.getTime();
-  if (from > to) {
-    throw new RangeError("Invalid range: from must not be after to");
-  }
   const time = date.getTime();
-  return time >= from && time <= to;
+  return time >= range.from.getTime() && time <= range.to.getTime();
 }
 
 /** 日付が今日と一致するか（日付のみ比較） */
@@ -95,27 +89,11 @@ export function getMonthRange(
   from: Date,
   to: Date,
 ): { year: number; month: number }[] {
-  assertValidDate(from);
-  assertValidDate(to);
-  if (from.getTime() > to.getTime()) {
-    throw new RangeError("Invalid range: from must not be after to");
-  }
-
-  const months: { year: number; month: number }[] = [];
-  let year = from.getFullYear();
-  let month = from.getMonth() + 1;
-
-  while (
-    year < to.getFullYear() ||
-    (year === to.getFullYear() && month <= to.getMonth() + 1)
-  ) {
-    months.push({ year, month });
-    month++;
-    if (month > 12) {
-      month = 1;
-      year++;
-    }
-  }
-
-  return months;
+  assertValidRange(from, to);
+  const start = from.getFullYear() * 12 + from.getMonth();
+  const end = to.getFullYear() * 12 + to.getMonth();
+  return Array.from({ length: end - start + 1 }, (_, i) => {
+    const n = start + i;
+    return { year: Math.floor(n / 12), month: (n % 12) + 1 };
+  });
 }

@@ -14,11 +14,11 @@ export function clampCursor(
   const row = Math.floor(cursor.row);
   const col = Math.floor(cursor.col);
 
-  const cols = monthData.cells[0]?.length;
-  if (monthData.visibleRows <= 0 || cols === undefined || cols <= 0)
-    return null;
+  const rows = monthData.visibleRows;
+  const cols = monthData.cells[0]?.length ?? 0;
+  if (rows <= 0 || cols <= 0) return null;
 
-  const maxRow = monthData.visibleRows - 1;
+  const maxRow = rows - 1;
   const maxCol = cols - 1;
   return {
     row: Math.max(0, Math.min(row, maxRow)),

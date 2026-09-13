@@ -6,7 +6,6 @@ import {
   getWeekdayHeaders,
 } from "@typescript-calendar-lib/core";
 import type { CSSProperties } from "react";
-import { useMemo } from "react";
 import { getCellClasses } from "./cell-classes.ts";
 import type { CalendarSize } from "./size.ts";
 import { buildSizeStyle, isSizeName } from "./size.ts";
@@ -54,9 +53,7 @@ export interface CalendarProps {
   onDateHover?: (date: Date) => void;
 }
 
-/**
- * Reactカレンダーコンポーネント
- */
+/** 月カレンダーコンポーネント */
 export function Calendar({
   year,
   month,
@@ -73,61 +70,42 @@ export function Calendar({
   onDateClick,
   onDateHover,
 }: CalendarProps) {
-  // 年月・ロケール・テーマは変更時のみ再計算する
-  const monthName = useMemo(() => getMonthName(locale, month), [locale, month]);
-  const weekdays = useMemo(
-    () => getWeekdayHeaders(locale, weekStart),
-    [locale, weekStart],
-  );
-  const grid = useMemo(
-    () => buildMonthGrid(year, month, weekStart),
-    [year, month, weekStart],
-  );
-  const resolvedTheme = useMemo(() => resolveTheme(theme), [theme]);
-  const cssVars = useMemo(
-    () => resolveColorScheme(colorScheme) as CSSProperties,
-    [colorScheme],
-  );
-
-  const className = (day: number): string =>
-    getCellClasses(createDate(year, month - 1, day), {
-      today,
-      highlight,
-      range,
-    });
-
-  const sizeClass = isSizeName(size) ? ` calendar-size-${size}` : "";
+  const cellDate = (day: number): Date => createDate(year, month - 1, day);
+  const cellClass = (day: number): string | undefined =>
+    getCellClasses(cellDate(day), { today, highlight, range }) || undefined;
 
   const handleCellClick = (day: number) => {
-    if (!interactive || !onDateClick) return;
-    onDateClick(createDate(year, month - 1, day));
+    if (interactive && onDateClick) onDateClick(cellDate(day));
   };
 
   const handleCellHover = (day: number) => {
-    if (!interactive || !onDateHover) return;
-    onDateHover(createDate(year, month - 1, day));
+    if (interactive && onDateHover) onDateHover(cellDate(day));
   };
 
   return (
     <div
-      className={`calendar ${resolvedTheme.className}${sizeClass}${interactive ? " calendar-interactive" : ""}`}
-      style={{ ...cssVars, ...buildSizeStyle(size), ...style }}
+      className={`calendar ${resolveTheme(theme).className}${isSizeName(size) ? ` calendar-size-${size}` : ""}${interactive ? " calendar-interactive" : ""}`}
+      style={{
+        ...(resolveColorScheme(colorScheme) as CSSProperties),
+        ...buildSizeStyle(size),
+        ...style,
+      }}
     >
       <div className="calendar-header">
         <h2>
-          {monthName} {year}
+          {getMonthName(locale, month)} {year}
         </h2>
       </div>
       <table>
         <thead>
           <tr>
-            {weekdays.map((day) => (
+            {getWeekdayHeaders(locale, weekStart).map((day) => (
               <th key={day}>{day}</th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {grid.map((row, i) => {
+          {buildMonthGrid(year, month, weekStart).map((row, i) => {
             if (row.every((d) => d === null)) return null;
             return (
               // biome-ignore lint/suspicious/noArrayIndexKey: 月グリッドは静的で並び順が変わらない
@@ -136,26 +114,22 @@ export function Calendar({
                   if (day === null)
                     // biome-ignore lint/suspicious/noArrayIndexKey: パディングセルは位置が唯一の識別子
                     return <td key={j} />;
-                  const cellClass = className(day) || undefined;
-                  if (!interactive) {
-                    return (
-                      <td key={day} className={cellClass}>
-                        {day}
-                      </td>
-                    );
-                  }
                   return (
-                    <td key={day} className={cellClass}>
-                      <button
-                        type="button"
-                        className="calendar-day-btn"
-                        onClick={() => handleCellClick(day)}
-                        onMouseEnter={() => handleCellHover(day)}
-                        tabIndex={0}
-                        aria-label={`${monthName} ${day}, ${year}`}
-                      >
-                        {day}
-                      </button>
+                    <td key={day} className={cellClass(day)}>
+                      {interactive ? (
+                        <button
+                          type="button"
+                          className="calendar-day-btn"
+                          onClick={() => handleCellClick(day)}
+                          onMouseEnter={() => handleCellHover(day)}
+                          tabIndex={0}
+                          aria-label={`${getMonthName(locale, month)} ${day}, ${year}`}
+                        >
+                          {day}
+                        </button>
+                      ) : (
+                        day
+                      )}
                     </td>
                   );
                 })}

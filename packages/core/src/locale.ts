@@ -9,9 +9,25 @@ export interface LocaleData {
   weekdaysMondayShort: readonly string[];
 }
 
+/** 月曜始まりの配列は日曜始まりの配列を前ローテーションして生成する */
+function makeLocale(
+  months: readonly string[],
+  weekdays: readonly string[],
+  weekdaysShort: readonly string[] = weekdays,
+): LocaleData {
+  const rotate = (arr: readonly string[]) => [...arr.slice(1), arr[0]!];
+  return {
+    months,
+    weekdays,
+    weekdaysShort,
+    weekdaysMonday: rotate(weekdays),
+    weekdaysMondayShort: rotate(weekdaysShort),
+  };
+}
+
 export const LOCALES: Record<Locale, LocaleData> = {
-  en: {
-    months: [
+  en: makeLocale(
+    [
       "January",
       "February",
       "March",
@@ -25,13 +41,11 @@ export const LOCALES: Record<Locale, LocaleData> = {
       "November",
       "December",
     ],
-    weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-    weekdaysShort: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
-    weekdaysMonday: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    weekdaysMondayShort: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
-  },
-  ja: {
-    months: [
+    ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
+  ),
+  ja: makeLocale(
+    [
       "1月",
       "2月",
       "3月",
@@ -45,13 +59,10 @@ export const LOCALES: Record<Locale, LocaleData> = {
       "11月",
       "12月",
     ],
-    weekdays: ["日", "月", "火", "水", "木", "金", "土"],
-    weekdaysShort: ["日", "月", "火", "水", "木", "金", "土"],
-    weekdaysMonday: ["月", "火", "水", "木", "金", "土", "日"],
-    weekdaysMondayShort: ["月", "火", "水", "木", "金", "土", "日"],
-  },
-  es: {
-    months: [
+    ["日", "月", "火", "水", "木", "金", "土"],
+  ),
+  es: makeLocale(
+    [
       "enero",
       "febrero",
       "marzo",
@@ -65,13 +76,11 @@ export const LOCALES: Record<Locale, LocaleData> = {
       "noviembre",
       "diciembre",
     ],
-    weekdays: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
-    weekdaysShort: ["do", "lu", "ma", "mi", "ju", "vi", "sá"],
-    weekdaysMonday: ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"],
-    weekdaysMondayShort: ["lu", "ma", "mi", "ju", "vi", "sá", "do"],
-  },
-  de: {
-    months: [
+    ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
+    ["do", "lu", "ma", "mi", "ju", "vi", "sá"],
+  ),
+  de: makeLocale(
+    [
       "Januar",
       "Februar",
       "März",
@@ -85,13 +94,10 @@ export const LOCALES: Record<Locale, LocaleData> = {
       "November",
       "Dezember",
     ],
-    weekdays: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
-    weekdaysShort: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
-    weekdaysMonday: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
-    weekdaysMondayShort: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
-  },
-  fr: {
-    months: [
+    ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
+  ),
+  fr: makeLocale(
+    [
       "janvier",
       "février",
       "mars",
@@ -105,13 +111,11 @@ export const LOCALES: Record<Locale, LocaleData> = {
       "novembre",
       "décembre",
     ],
-    weekdays: ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."],
-    weekdaysShort: ["di", "lu", "ma", "me", "je", "ve", "sa"],
-    weekdaysMonday: ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."],
-    weekdaysMondayShort: ["lu", "ma", "me", "je", "ve", "sa", "di"],
-  },
-  ko: {
-    months: [
+    ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."],
+    ["di", "lu", "ma", "me", "je", "ve", "sa"],
+  ),
+  ko: makeLocale(
+    [
       "1월",
       "2월",
       "3월",
@@ -125,13 +129,10 @@ export const LOCALES: Record<Locale, LocaleData> = {
       "11월",
       "12월",
     ],
-    weekdays: ["일", "월", "화", "수", "목", "금", "토"],
-    weekdaysShort: ["일", "월", "화", "수", "목", "금", "토"],
-    weekdaysMonday: ["월", "화", "수", "목", "금", "토", "일"],
-    weekdaysMondayShort: ["월", "화", "수", "목", "금", "토", "일"],
-  },
-  zh: {
-    months: [
+    ["일", "월", "화", "수", "목", "금", "토"],
+  ),
+  zh: makeLocale(
+    [
       "一月",
       "二月",
       "三月",
@@ -145,11 +146,8 @@ export const LOCALES: Record<Locale, LocaleData> = {
       "十一月",
       "十二月",
     ],
-    weekdays: ["日", "一", "二", "三", "四", "五", "六"],
-    weekdaysShort: ["日", "一", "二", "三", "四", "五", "六"],
-    weekdaysMonday: ["一", "二", "三", "四", "五", "六", "日"],
-    weekdaysMondayShort: ["一", "二", "三", "四", "五", "六", "日"],
-  },
+    ["日", "一", "二", "三", "四", "五", "六"],
+  ),
 };
 
 /** ロケールデータを取得する（未知のロケールは RangeError） */

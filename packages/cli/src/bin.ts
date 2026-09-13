@@ -8,18 +8,6 @@ import { createDate } from "@typescript-calendar-lib/core";
 import { calendar } from "./calendar.ts";
 import type { ColorSchemeName, ThemeName } from "./theme.ts";
 
-const THEMES: readonly ThemeName[] = ["default", "modern"];
-const COLOR_SCHEMES: readonly ColorSchemeName[] = [
-  "default",
-  "ocean",
-  "forest",
-  "sunset",
-  "mono",
-];
-const LOCALES: readonly Locale[] = ["en", "ja", "es", "de", "fr", "ko", "zh"];
-const WEEK_STARTS: readonly WeekStart[] = ["sunday", "monday"];
-const HIGHLIGHT_STYLES: readonly HighlightStyle[] = ["bracket", "reverse"];
-
 export interface CliArgs {
   year?: number;
   month?: number;
@@ -38,6 +26,27 @@ export interface ParseResult {
   help?: boolean;
 }
 
+const THEMES: readonly ThemeName[] = ["default", "modern"];
+const COLOR_SCHEMES: readonly ColorSchemeName[] = [
+  "default",
+  "ocean",
+  "forest",
+  "sunset",
+  "mono",
+];
+const LOCALES: readonly Locale[] = ["en", "ja", "es", "de", "fr", "ko", "zh"];
+const WEEK_STARTS: readonly WeekStart[] = ["sunday", "monday"];
+const HIGHLIGHT_STYLES: readonly HighlightStyle[] = ["bracket", "reverse"];
+
+/** 値を一つ取るオプションと、代入先のフィールド名 */
+const VALUE_OPTIONS: Record<string, keyof CliArgs> = {
+  "--theme": "theme",
+  "--color-scheme": "colorScheme",
+  "--locale": "locale",
+  "--week-start": "weekStart",
+  "--highlight-style": "highlightStyle",
+};
+
 /** YYYY-MM-DD 形式の日付文字列をパースする */
 export function parseDate(value: string): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
@@ -45,30 +54,18 @@ export function parseDate(value: string): Date | null {
   const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
-  if (year < 1) return null;
-  if (month < 1 || month > 12) return null;
-  if (day < 1 || day > 31) return null;
+  if (year < 1 || month < 1 || month > 12 || day < 1 || day > 31) {
+    return null;
+  }
   const date = createDate(year, month - 1, day);
   if (
     date.getFullYear() !== year ||
     date.getMonth() !== month - 1 ||
     date.getDate() !== day
-  )
+  ) {
     return null;
-  return date;
-}
-
-/** 指定した候補リストに値が含まれるか検証する */
-function validateChoice<T extends string>(
-  value: T | undefined,
-  choices: readonly T[],
-  name: string,
-): string | undefined {
-  if (value === undefined) return undefined;
-  if (!choices.includes(value)) {
-    return `Invalid ${name}: "${value}" (expected: ${choices.join(" | ")})`;
   }
-  return undefined;
+  return date;
 }
 
 /**
@@ -76,110 +73,85 @@ function validateChoice<T extends string>(
  */
 export function parseArgs(args: readonly string[]): ParseResult {
   const result: CliArgs = {};
-  const missing = (name: string): ParseResult => ({
+  const error = (message: string): ParseResult => ({
     args: result,
-    error: `Missing value for option: ${name}`,
+    error: message,
   });
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
-    const next = (): string | undefined => args[++i];
 
-    switch (arg) {
-      case "-h":
-      case "--help":
-        return { args: result, help: true };
-      case "--theme": {
-        const value = next();
-        if (value === undefined) return missing("--theme");
-        result.theme = value as ThemeName;
-        break;
+    if (arg === "-h" || arg === "--help") {
+      return { args: result, help: true };
+    }
+    if (arg === "--color") {
+      result.color = true;
+      continue;
+    }
+    if (arg === "--highlight") {
+      const value = args[++i];
+      if (value === undefined) {
+        return error("Missing value for option: --highlight");
       }
-      case "--color-scheme": {
-        const value = next();
-        if (value === undefined) return missing("--color-scheme");
-        result.colorScheme = value as ColorSchemeName;
-        break;
+      const parsed = parseDate(value);
+      if (parsed === null) {
+        return error(
+          `Invalid --highlight date: "${value}" (expected YYYY-MM-DD, e.g. 2026-09-08)`,
+        );
       }
-      case "--color":
-        result.color = true;
-        break;
-      case "--locale": {
-        const value = next();
-        if (value === undefined) return missing("--locale");
-        result.locale = value as Locale;
-        break;
+      result.highlight = parsed;
+      continue;
+    }
+
+    const key = VALUE_OPTIONS[arg];
+    if (key !== undefined) {
+      const value = args[++i];
+      if (value === undefined) {
+        return error(`Missing value for option: ${arg}`);
       }
-      case "--week-start": {
-        const value = next();
-        if (value === undefined) return missing("--week-start");
-        result.weekStart = value as WeekStart;
-        break;
-      }
-      case "--highlight": {
-        const value = next();
-        if (value === undefined) return missing("--highlight");
-        const parsed = parseDate(value);
-        if (parsed === null) {
-          return {
-            args: result,
-            error: `Invalid --highlight date: "${value}" (expected YYYY-MM-DD, e.g. 2026-09-08)`,
-          };
-        }
-        result.highlight = parsed;
-        break;
-      }
-      case "--highlight-style": {
-        const value = next();
-        if (value === undefined) return missing("--highlight-style");
-        result.highlightStyle = value as HighlightStyle;
-        break;
-      }
-      default: {
-        const numeric = /^-?\d+$/.test(arg);
-        if (arg.startsWith("-") && !numeric) {
-          return { args: result, error: `Unknown option: ${arg}` };
-        }
-        if (!numeric) {
-          return {
-            args: result,
-            error: `Invalid argument: "${arg}" (expected a year or month number)`,
-          };
-        }
-        if (result.year === undefined) {
-          result.year = Number(arg);
-        } else if (result.month === undefined) {
-          result.month = Number(arg);
-        } else {
-          return { args: result, error: `Too many arguments: "${arg}"` };
-        }
-      }
+      (result as Record<string, unknown>)[key] = value;
+      continue;
+    }
+
+    const numeric = /^-?\d+$/.test(arg);
+    if (arg.startsWith("-") && !numeric) {
+      return error(`Unknown option: ${arg}`);
+    }
+    if (!numeric) {
+      return error(
+        `Invalid argument: "${arg}" (expected a year or month number)`,
+      );
+    }
+    if (result.year === undefined) {
+      result.year = Number(arg);
+    } else if (result.month === undefined) {
+      result.month = Number(arg);
+    } else {
+      return error(`Too many arguments: "${arg}"`);
     }
   }
 
   // 値のバリデーション
   if (result.year !== undefined && (result.year < 1 || result.year > 9999)) {
-    return {
-      args: result,
-      error: `Invalid year: ${result.year} (expected 1–9999)`,
-    };
+    return error(`Invalid year: ${result.year} (expected 1–9999)`);
   }
   if (result.month !== undefined && (result.month < 1 || result.month > 12)) {
-    return {
-      args: result,
-      error: `Invalid month: ${result.month} (expected 1–12)`,
-    };
+    return error(`Invalid month: ${result.month} (expected 1–12)`);
   }
 
-  for (const [value, choices, name] of [
-    [result.theme, THEMES, "theme"] as const,
-    [result.colorScheme, COLOR_SCHEMES, "color-scheme"] as const,
-    [result.locale, LOCALES, "locale"] as const,
-    [result.weekStart, WEEK_STARTS, "week-start"] as const,
-    [result.highlightStyle, HIGHLIGHT_STYLES, "highlight-style"] as const,
-  ]) {
-    const error = validateChoice(value, choices, name);
-    if (error) return { args: result, error };
+  const choiceTable: Array<[string | undefined, readonly string[], string]> = [
+    [result.theme, THEMES, "theme"],
+    [result.colorScheme, COLOR_SCHEMES, "color-scheme"],
+    [result.locale, LOCALES, "locale"],
+    [result.weekStart, WEEK_STARTS, "week-start"],
+    [result.highlightStyle, HIGHLIGHT_STYLES, "highlight-style"],
+  ];
+  for (const [value, choices, name] of choiceTable) {
+    if (value !== undefined && !choices.includes(value)) {
+      return error(
+        `Invalid ${name}: "${value}" (expected: ${choices.join(" | ")})`,
+      );
+    }
   }
 
   return { args: result };

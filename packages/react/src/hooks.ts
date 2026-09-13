@@ -6,18 +6,18 @@ import type {
 } from "@typescript-calendar-lib/tui";
 import {
   buildMonthData,
+  clearSelection,
   createCalendarState,
   getCursorDate,
   getSelectedDate,
+  goToToday,
+  moveCursor,
   navigateMonth,
   rebuildState,
   resolveOptions,
-  clearSelection as tuiClearSelection,
-  goToToday as tuiGoToToday,
-  moveCursor as tuiMoveCursor,
-  selectDate as tuiSelectDate,
+  selectDate,
 } from "@typescript-calendar-lib/tui";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface UseCalendarStateOptions
   extends Pick<
@@ -141,43 +141,28 @@ export function useCalendarState(
     });
   }, [options]);
 
-  const move = useCallback((direction: Direction) => {
-    setState((prev) => tuiMoveCursor(prev, direction));
-  }, []);
-
-  const goNext = useCallback(() => {
-    setState((prev) => navigateMonth(prev, "next"));
-  }, []);
-
-  const goPrev = useCallback(() => {
-    setState((prev) => navigateMonth(prev, "prev"));
-  }, []);
-
-  const goToday = useCallback(() => {
-    setState((prev) => tuiGoToToday(prev));
-  }, []);
-
-  const select = useCallback(() => {
-    setState((prev) => tuiSelectDate(prev));
-  }, []);
-
-  const clear = useCallback(() => {
-    setState((prev) => tuiClearSelection(prev));
-  }, []);
-
-  const cursorDate = useMemo(() => getCursorDate(state), [state]);
-  const selectedDate = useMemo(() => getSelectedDate(state), [state]);
-
   return {
     state,
-    moveCursor: move,
-    goNext,
-    goPrev,
-    goToday,
-    selectDate: select,
-    clearSelection: clear,
-    cursorDate,
-    selectedDate,
+    moveCursor: useCallback(
+      (direction: Direction) => setState((prev) => moveCursor(prev, direction)),
+      [],
+    ),
+    goNext: useCallback(
+      () => setState((prev) => navigateMonth(prev, "next")),
+      [],
+    ),
+    goPrev: useCallback(
+      () => setState((prev) => navigateMonth(prev, "prev")),
+      [],
+    ),
+    goToday: useCallback(() => setState((prev) => goToToday(prev)), []),
+    selectDate: useCallback(() => setState((prev) => selectDate(prev)), []),
+    clearSelection: useCallback(
+      () => setState((prev) => clearSelection(prev)),
+      [],
+    ),
+    cursorDate: getCursorDate(state),
+    selectedDate: getSelectedDate(state),
   };
 }
 

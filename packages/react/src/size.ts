@@ -14,13 +14,9 @@ export interface CalendarCustomSize {
 /** セルサイズ指定 */
 export type CalendarSize = CalendarSizeName | CalendarCustomSize;
 
-const SIZE_NAMES: readonly CalendarSizeName[] = ["sm", "md", "lg"];
-
 /** 組み込みサイズ名のみ真を返す（未知の文字列はカスタムサイズとして扱わない） */
 export function isSizeName(size: CalendarSize): size is CalendarSizeName {
-  return (
-    typeof size === "string" && (SIZE_NAMES as readonly string[]).includes(size)
-  );
+  return typeof size === "string" && ["sm", "md", "lg"].includes(size);
 }
 
 function toCssLength(value: number | string): string {
