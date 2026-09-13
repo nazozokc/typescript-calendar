@@ -17,8 +17,5 @@
   "scripts": {
     "build": "tsdown",
     "prepack": "pnpm build"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
   }
 }

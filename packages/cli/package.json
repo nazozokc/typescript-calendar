@@ -27,8 +27,5 @@
   },
   "dependencies": {
     "@typescript-calendar-lib/core": "workspace:*"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
   }
 }

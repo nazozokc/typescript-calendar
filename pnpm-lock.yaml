@@ -44,15 +44,8 @@ importers:
       '@typescript-calendar-lib/core':
         specifier: workspace:*
         version: link:../core
-      typescript:
-        specifier: ^5
-        version: 5.9.3
 
-  packages/core:
-    dependencies:
-      typescript:
-        specifier: ^5
-        version: 5.9.3
+  packages/core: {}
 
   packages/react:
     dependencies:
@@ -65,9 +58,6 @@ importers:
       react:
         specifier: ^19
         version: 19.2.8
-      typescript:
-        specifier: ^5
-        version: 5.9.3
     devDependencies:
       '@testing-library/react':
         specifier: ^16
@@ -93,9 +83,6 @@ importers:
       '@typescript-calendar-lib/core':
         specifier: workspace:*
         version: link:../core
-      typescript:
-        specifier: ^5
-        version: 5.9.3
 
 packages:
 
@@ -1540,11 +1527,6 @@ packages:
       unrun:
         optional: true
 
-  typescript@5.9.3:
-    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
-    engines: {node: '>=14.17'}
-    hasBin: true
-
   typescript@7.0.2:
     resolution: {integrity: sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==}
     engines: {node: '>=16.20.0'}
@@ -2741,8 +2723,6 @@ snapshots:
       - '@volar/typescript'
       - oxc-resolver
       - vue-tsc
-
-  typescript@5.9.3: {}
 
   typescript@7.0.2:
     optionalDependencies:
