@@ -16,10 +16,10 @@ jobs:
           RELEASE_BODY: ${{ github.event.release.body }}
         run: |
           pkg="svelte"
-          line="$(printf '%s\n' "$RELEASE_BODY" | grep -iE '^[[:space:]]*publish[[:space:]]*:' | head -1)"
-          if [ -z "$line" ]; then
+          lines="$(printf '%s\n' "$RELEASE_BODY" | grep -iE '^[[:space:]]*publish[[:space:]]*:' | sed 's/^[[:space:]]*[Pp]ublish[[:space:]]*:[[:space:]]*//' | tr ',' ' ' | tr '\n' ' ')"
+          if [ -z "$lines" ]; then
             enabled=true
-          elif printf '%s\n' "$line" | grep -qiE "(^|[[:space:],])${pkg}([[:space:],]|$)"; then
+          elif printf '%s' "$lines" | grep -qiE "(^|[[:space:],])${pkg}([[:space:],]|$)"; then
             enabled=true
           else
             enabled=false
