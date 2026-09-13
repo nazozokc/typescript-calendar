@@ -5,6 +5,7 @@ import interactiveDemo from "../guide/interactive-demo.md";
 import cli from "../packages/cli.md";
 import core from "../packages/core.md";
 import react from "../packages/react.md";
+import svelte from "../packages/svelte.md";
 import tui from "../packages/tui.md";
 import App from "./components/App.svelte";
 import { normalizePath, TITLES } from "./nav";
@@ -16,6 +17,7 @@ const PAGES: Record<string, string> = {
   "/packages/core": core,
   "/packages/cli": cli,
   "/packages/react": react,
+  "/packages/svelte": svelte,
   "/packages/tui": tui,
 };
 

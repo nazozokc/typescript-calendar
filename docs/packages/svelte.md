@@ -1,0 +1,231 @@
+# @typescript-calendar-lib/svelte
+
+A `<Calendar />` Svelte 5 component with CSS-based themes and color schemes, plus a `useCalendarState` hook for full interactivity. The component is fully controlled — you pass `year` and `month` and it renders the grid.
+
+> **Warning: Peer dependency** — Requires Svelte 5 (runes). The package doesn't bundle Svelte; install it in your app:
+>
+> ```sh
+> npm install svelte @typescript-calendar-lib/svelte
+> ```
+
+## Installation
+
+```sh
+npm install @typescript-calendar-lib/svelte
+# or
+bun add @typescript-calendar-lib/svelte
+```
+
+## Quick Start
+
+```svelte
+<script lang="ts">
+  import Calendar from "@typescript-calendar-lib/svelte";
+  import "@typescript-calendar-lib/svelte/calendar.css"; // required — component styles
+</script>
+
+<Calendar year={2026} month={9} colorScheme="ocean" theme="modern" />
+```
+
+## Component API
+
+### `Calendar`
+
+```svelte
+<Calendar year={2026} month={9} />
+```
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `year` | `number` | — (required) | Calendar year |
+| `month` | `number` | — (required) | Month, 1-indexed (`1`–`12`) |
+| `locale` | `Locale` | `"en"` | Language |
+| `weekStart` | `WeekStart` | `"sunday"` | First day of the week |
+| `highlight` | `Date` | — | Date to highlight |
+| `range` | `{ from: Date; to: Date }` | — | Dates to emphasize |
+| `today` | `Date` | — | Reference date for "today" styling |
+| `theme` | `ThemeName \| SvelteTheme` | `"default"` | CSS class-based theme |
+| `colorScheme` | `ColorSchemeName \| SvelteColorScheme` | `"default"` | CSS variable-based colors |
+| `size` | `CalendarSize` | `"md"` | Cell size |
+| `style` | `CSSProperties` | — | Extra styles for the root element |
+| `interactive` | `boolean` | `false` | Enable cell click/hover/keyboard selection |
+| `onDateClick` | `(date: Date) => void` | — | Called when a day cell is clicked (or Enter/Space pressed) |
+| `onDateHover` | `(date: Date) => void` | — | Called when a day cell is hovered |
+
+The component exports as both named `Calendar` and default.
+
+## Interactive Mode
+
+Set `interactive` to make day cells clickable. Each cell becomes a focusable `role="button"` supporting click, mouse hover, and Enter / Space keys:
+
+```svelte
+<Calendar
+  year={2026}
+  month={9}
+  interactive
+  onDateClick={(date) => console.log("Selected", date)}
+  onDateHover={(date) => console.log("Hovered", date)}
+/>
+```
+
+## `useCalendarState` hook
+
+For full interactivity (cursor movement, month navigation, selection), use the `useCalendarState` hook. It wraps the [`tui`](/packages/tui) state machine as Svelte 5 runes state.
+
+> **Reactive options:** Pass a **getter function** instead of a plain object if any option should track reactive props or `$state` values. A plain object is snapshot-only.
+>
+> ```svelte
+> <script lang="ts">
+>   import Calendar, { useCalendarState } from "@typescript-calendar-lib/svelte";
+>   import "@typescript-calendar-lib/svelte/calendar.css";
+>
+>   let { highlight, today } = $props();
+>
+>   const cal = useCalendarState(() => ({
+>     initialYear: 2026,
+>     initialMonth: 9,
+>     today,
+>     highlight,
+>   }));
+> </script>
+>
+> <button onclick={cal.goPrev}>‹</button>
+> <Calendar year={cal.state.year} month={cal.state.month} interactive />
+> <button onclick={cal.goNext}>›</button>
+> ```
+
+### Return value
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `state` | `CalendarState` | Current calendar state (from tui) |
+| `goNext` | `() => void` | Move to next month |
+| `goPrev` | `() => void` | Move to previous month |
+| `goToday` | `() => void` | Jump to today's month |
+| `moveCursor` | `(direction: Direction) => void` | Move cursor: `"up"` / `"down"` / `"left"` / `"right"` |
+| `selectDate` | `() => void` | Select the date under the cursor |
+| `clearSelection` | `() => void` | Clear the selection |
+| `cursorDate` | `Date \| null` | Date under the cursor |
+| `selectedDate` | `Date \| null` | Currently selected date |
+
+## Themes
+
+### `ThemeName`
+
+```ts
+type ThemeName = "default" | "modern" | "minimal" | "rounded" | "retro";
+```
+
+Themes are implemented as CSS classes applied to the root element:
+
+- `calendar-theme-default`
+- `calendar-theme-modern`
+- `calendar-theme-minimal`
+- `calendar-theme-rounded`
+- `calendar-theme-retro`
+
+Pass a custom theme as an object:
+
+```ts
+const myTheme: SvelteTheme = { className: "my-calendar" };
+```
+
+### `SvelteTheme`
+
+```ts
+interface SvelteTheme {
+  className: string;
+}
+```
+
+### `THEMES` / `resolveTheme(theme?)`
+
+Predefined theme map and resolver.
+
+## Color Schemes
+
+### `ColorSchemeName`
+
+```ts
+type ColorSchemeName =
+  | "default" | "ocean" | "forest" | "sunset"
+  | "mono" | "midnight" | "blossom";
+```
+
+### `SvelteColorScheme`
+
+A color scheme is a map of `--cal-*` CSS custom properties:
+
+```ts
+type SvelteColorScheme = Record<string, string | undefined>;
+```
+
+Available variables:
+
+| Variable | Purpose |
+| :--- | :--- |
+| `--cal-bg` | Background |
+| `--cal-fg` | Foreground |
+| `--cal-accent` | Accent (highlight) |
+| `--cal-weekend-fg` | Weekend foreground |
+| `--cal-border` | Borders |
+| `--cal-header-bg` | Header background |
+| `--cal-highlight-bg` | Highlight background |
+| `--cal-highlight-fg` | Highlight foreground |
+| `--cal-range-bg` | Range background |
+| `--cal-today-bg` | Today background |
+| `--cal-today-fg` | Today foreground |
+
+Pass a custom scheme directly:
+
+```ts
+const myScheme: SvelteColorScheme = {
+  "--cal-bg": "#ffffff",
+  "--cal-fg": "#1e293b",
+  "--cal-accent": "#6366f1",
+};
+```
+
+### `COLOR_SCHEMES` / `resolveColorScheme(scheme?)`
+
+Predefined schemes and resolver.
+
+## Sizing
+
+### `CalendarSize`
+
+```ts
+type CalendarSize = "sm" | "md" | "lg" | { width: number; height: number };
+```
+
+| Size | Cell dimensions |
+| :--- | :--- |
+| `"sm"` | 32 × 24 px |
+| `"md"` | 40 × 32 px |
+| `"lg"` | 48 × 40 px |
+
+### `buildSizeStyle(size?)`
+
+Returns `CSSProperties` for the given size name or custom object.
+
+## CSS
+
+The stylesheet must be imported once in your application:
+
+```svelte
+<script lang="ts">
+  import "@typescript-calendar-lib/svelte/calendar.css";
+</script>
+```
+
+## Types
+
+All types are exported from the package entry point:
+
+```ts
+export type { CSSProperties } from "@typescript-calendar-lib/svelte/style";
+export type { SvelteTheme, SvelteColorScheme, ThemeName, ColorSchemeName } from "@typescript-calendar-lib/svelte/themes";
+export type { CalendarSize } from "@typescript-calendar-lib/svelte/size";
+```
+
+Utility functions (`getCellClasses`, `buildSizeStyle`, `isSizeName`, `resolveTheme`, `resolveColorScheme`) and constants (`THEMES`, `COLOR_SCHEMES`) are also re-exported.

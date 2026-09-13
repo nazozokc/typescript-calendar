@@ -57,7 +57,7 @@ jobs:
       - name: Sync package versions
         run: |
           version="${{ steps.version.outputs.version }}"
-          for pkg in core cli tui react; do
+          for pkg in core cli tui react svelte; do
             pnpm --filter "@typescript-calendar-lib/${pkg}" pkg set "version=${version}"
           done
 

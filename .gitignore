@@ -90,6 +90,8 @@ typings/
 # Nuxt.js build / generate output
 .nuxt
 dist
+# svelte-package temp build output
+.svelte-kit
 
 # Gatsby files
 .cache/

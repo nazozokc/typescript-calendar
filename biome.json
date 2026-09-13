@@ -8,7 +8,7 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!**/*.svelte"]
+    "includes": ["**", "!**/*.svelte", "!**/.svelte-kit"]
   },
   "formatter": {
     "indentStyle": "space",

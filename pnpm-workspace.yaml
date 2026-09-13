@@ -2,3 +2,11 @@ packages:
   - "packages/*"
 allowBuilds:
   esbuild: true
+# @sveltejs/package は svelte2tsx 経由で typescript を import するが、自らの
+# 依存として宣言していない。リポジトリの typescript が tsgo (7.x) のため
+# 解決が .pnpm ルートの 7.x にフォールバックし、ts.sys が無くてクラッシュする。
+# 直接依存として ^5 を注入して svelte2tsx と同じ typescript@5 に揃える。
+packageExtensions:
+  "@sveltejs/package":
+    dependencies:
+      typescript: "^5.9.0"
