@@ -34,8 +34,8 @@ pnpm hooks:install   # enable git hooks (commit message + typecheck/test)
 | `pnpm typecheck` | TypeScript typecheck from the root tsconfig + svelte-check for the svelte package |
 | `pnpm test` | Run the vitest suite |
 | `pnpm test:coverage` | Run vitest with v8 coverage report |
-| `pnpm docs:dev` | Start the docs SPA dev server (Bun) |
-| `pnpm docs:build` | Build the docs site to `docs/dist` (Bun) |
+| `pnpm docs:dev` | Start the docs SPA dev server (Vite) |
+| `pnpm docs:build` | Build the docs site to `docs/dist` (Vite) |
 | `pnpm docs:preview` | Preview the built docs site |
 
 ## Repository structure
@@ -49,7 +49,7 @@ packages/
   tui/     # Framework-agnostic headless state (cursor, selection, navigation)
   react/   # React component + useCalendarState hook, calendar.css
   svelte/  # Svelte 5 component + useCalendarState hook, calendar.css
-docs/      # Docs SPA (Bun build, deployed to GitHub Pages)
+docs/      # Docs SPA (Vite build, deployed to GitHub Pages)
 ```
 
 - `core` has no runtime dependencies; the other packages depend on it via `workspace:*`.
@@ -136,7 +136,7 @@ Releases are triggered by GitHub Releases (`.github/workflows/publish-*.yml`):
 
 ## Docs
 
-The docs site is an SPA built with Bun (`docs/build.ts` → `docs/dist`) and deployed to GitHub Pages by `.github/workflows/deploy-docs.yml`.
+The docs site is an SPA built with Vite (`docs/vite.config.ts` → `docs/dist`) and deployed to GitHub Pages by `.github/workflows/deploy-docs.yml`.
 
 - `docs/guide/*.md` and `docs/packages/*.md` are imported directly by `docs/src/main.ts` and rendered as pages — they are page content, not leftovers. Don't delete them.
 - Use `pnpm docs:dev` for local development. There is no Jekyll/Liquid processing, so `{{`/`}}` in code samples is fine.

@@ -14,8 +14,8 @@ export const GITHUB_URL = "https://github.com/nazozokc/typescript-calendar-lib";
  * Base path of the docs site.
  *
  * GitHub Pages serves project sites under `/<repo>/`, so every link needs the
- * `/typescript-calendar-lib` prefix there. The dev server (Bun.serve) serves from
- * `/` and needs no prefix — detect which case we are in from the URL.
+ * `/typescript-calendar-lib` prefix there. The dev server also serves under the
+ * base path — detect which case we are in from the URL.
  */
 export const BASE = window.location.pathname.startsWith(
   "/typescript-calendar-lib",

@@ -21,18 +21,18 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
         with:
-          bun-version: 1.3.13
+          node-version: 22
+          cache: pnpm
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Build docs
-        run: bun ./docs/build.ts
-
-      - name: Drop server bundle (static hosting only)
-        run: rm docs/dist/server.js
+        run: pnpm docs:build
 
       - uses: actions/upload-pages-artifact@v5
         with:

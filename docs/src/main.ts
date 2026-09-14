@@ -1,12 +1,12 @@
 import { mount } from "svelte";
-import architecture from "../guide/architecture.md";
-import gettingStarted from "../guide/getting-started.md";
-import interactiveDemo from "../guide/interactive-demo.md";
-import cli from "../packages/cli.md";
-import core from "../packages/core.md";
-import react from "../packages/react.md";
-import svelte from "../packages/svelte.md";
-import tui from "../packages/tui.md";
+import { html as architecture } from "../guide/architecture.md";
+import { html as gettingStarted } from "../guide/getting-started.md";
+import { html as interactiveDemo } from "../guide/interactive-demo.md";
+import { html as cli } from "../packages/cli.md";
+import { html as core } from "../packages/core.md";
+import { html as react } from "../packages/react.md";
+import { html as svelte } from "../packages/svelte.md";
+import { html as tui } from "../packages/tui.md";
 import App from "./components/App.svelte";
 import { normalizePath, TITLES } from "./nav";
 

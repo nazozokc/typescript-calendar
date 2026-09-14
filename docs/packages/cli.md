@@ -5,6 +5,8 @@ Render month, year, or date-range calendars as plain text — with optional ANSI
 ## Installation
 
 ```sh
+pnpm add @typescript-calendar-lib/cli
+# or
 npm install @typescript-calendar-lib/cli
 # or
 bun add @typescript-calendar-lib/cli
