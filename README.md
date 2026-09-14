@@ -17,9 +17,11 @@ A calendar library written in TypeScript. Render month, year, or arbitrary date-
 ## Install
 
 ```sh
-bun add @typescript-calendar-lib/cli
+pnpm add @typescript-calendar-lib/cli
 # or
 npm install @typescript-calendar-lib/cli
+# or
+bun add @typescript-calendar-lib/cli
 ```
 
 ## Usage

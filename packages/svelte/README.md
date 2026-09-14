@@ -11,6 +11,8 @@ A `<Calendar />` Svelte 5 component with CSS-based themes and color schemes, plu
 ## Installation
 
 ```sh
+pnpm add @typescript-calendar-lib/svelte
+# or
 npm install @typescript-calendar-lib/svelte
 # or
 bun add @typescript-calendar-lib/svelte

@@ -1,23 +1,22 @@
+# CLAUDE.md
 
-Default to using Bun instead of Node.js.
+Default to using pnpm + Node.js.
 
-- Use `bun <file>` instead of `node <file>` or `ts-node <file>`
-- Use `pnpm test` (vitest) to run the test suite. Use `bun test` only for simple Bun-specific tests.
-- Use `bun build <file.html|file.ts|file.css>` instead of `webpack` or `esbuild`
-- Use `bun install` instead of `npm install` or `yarn install` or `pnpm install`
-- Use `bun run <script>` instead of `npm run <script>` or `yarn run <script>` or `pnpm run <script>`
-- Use `bunx <package> <command>` instead of `npx <package> <command>`
-- Bun automatically loads .env, so don't use dotenv.
+- Use `pnpm <script>` to run repo scripts.
+- Use `node <file>` instead of `ts-node <file>`.
+- Use `pnpm test` (vitest) to run the test suite.
+- Use `pnpm build` (tsdown) to build packages; use `vite build` for the docs site.
+- Use `pnpm install` instead of `npm install` or `yarn install` or `bun install`.
+- Use `pnpm dlx <package> <command>` instead of `npx <package> <command>`.
+- This repo does not use Bun. If you see `bun` in a command, replace it with the pnpm/Node equivalent.
+- pnpm automatically loads `.npmrc` configuration; don't use dotenv.
 
 ## APIs
 
-- `Bun.serve()` supports WebSockets, HTTPS, and routes. Don't use `express`.
-- `bun:sqlite` for SQLite. Don't use `better-sqlite3`.
-- `Bun.redis` for Redis. Don't use `ioredis`.
-- `Bun.sql` for Postgres. Don't use `pg` or `postgres.js`.
-- `WebSocket` is built-in. Don't use `ws`.
-- Prefer `Bun.file` over `node:fs`'s readFile/writeFile
-- Bun.$`ls` instead of execa.
+- `node:sqlite` for SQLite. Don't use `better-sqlite3` or `bun:sqlite`.
+- Use `Bun`-free Node APIs: `node:http` / `node:fs` instead of Bun equivalents.
+- `fetch` / `WebSocket` are built-in in Node 22+.
+- Prefer `node:fs`'s `readFile`/`writeFile` with `import { readFile, writeFile } from "node:fs/promises"`.
 
 ## Testing
 
@@ -33,74 +32,21 @@ test("hello world", () => {
 
 ## Frontend
 
-Use HTML imports with `Bun.serve()`. Don't use `vite`. HTML imports fully support React, CSS, Tailwind.
+The docs site is a Vite SPA (`docs/vite.config.ts`):
 
-Server:
+- `pnpm docs:dev` — Vite dev server with HMR (root: `docs/`).
+- `pnpm docs:build` — `vite build` → `docs/dist` (base: `/typescript-calendar-lib`), then copies `index.html` → `404.html` for the GitHub Pages SPA fallback.
+- `pnpm docs:preview` — `vite preview` for the built site.
+- `.md` files are imported as rendered HTML via `vite-plugin-markdown` (`markdown({ mode: ["html"] })`); `docs/src/app.d.ts` declares the `*.md` module.
 
-```ts#index.ts
-import index from "./index.html"
+For example, a Vite dev server:
 
-Bun.serve({
-  routes: {
-    "/": index,
-    "/api/users/:id": {
-      GET: (req) => {
-        return new Response(JSON.stringify({ id: req.params.id }));
-      },
-    },
-  },
-  // optional websocket support
-  websocket: {
-    open: (ws) => {
-      ws.send("Hello, world!");
-    },
-    message: (ws, message) => {
-      ws.send(message);
-    },
-    close: (ws) => {
-      // handle close
-    }
-  },
-  development: {
-    hmr: true,
-    console: true,
-  }
-})
+```ts#vite.config.ts
+import { defineConfig } from "vite";
+
+export default defineConfig({
+  plugins: [],
+});
 ```
 
-HTML files can import .tsx, .jsx or .js files directly and Bun's bundler will transpile & bundle automatically. `<link>` tags can point to stylesheets and Bun's CSS bundler will bundle.
-
-```html#index.html
-<html>
-  <body>
-    <h1>Hello, world!</h1>
-    <script type="module" src="./frontend.tsx"></script>
-  </body>
-</html>
-```
-
-With the following `frontend.tsx`:
-
-```tsx#frontend.tsx
-import React from "react";
-import { createRoot } from "react-dom/client";
-
-// import .css files directly and it works
-import './index.css';
-
-const root = createRoot(document.body);
-
-export default function Frontend() {
-  return <h1>Hello, world!</h1>;
-}
-
-root.render(<Frontend />);
-```
-
-Then, run index.ts
-
-```sh
-bun --hot ./index.ts
-```
-
-For more information, read the Bun API docs in `node_modules/bun-types/docs/**.mdx`.
+For more information, read the Vite docs: https://vite.dev/ or `node_modules/vite/README.md`.

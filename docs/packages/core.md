@@ -7,6 +7,8 @@ Shared, framework-agnostic calendar utilities: date math, locale data, and grid 
 ## Installation
 
 ```sh
+pnpm add @typescript-calendar-lib/core
+# or
 npm install @typescript-calendar-lib/core
 # or
 bun add @typescript-calendar-lib/core

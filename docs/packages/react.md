@@ -11,6 +11,8 @@ A `<Calendar />` React component with CSS-based themes and color schemes, plus a
 ## Installation
 
 ```sh
+pnpm add @typescript-calendar-lib/react
+# or
 npm install @typescript-calendar-lib/react
 # or
 bun add @typescript-calendar-lib/react

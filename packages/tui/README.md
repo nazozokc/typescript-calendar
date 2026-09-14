@@ -5,6 +5,8 @@ Framework-agnostic, headless calendar data & state for any TUI framework (Ink, b
 ## Installation
 
 ```sh
+pnpm add @typescript-calendar-lib/tui
+# or
 npm install @typescript-calendar-lib/tui
 # or
 bun add @typescript-calendar-lib/tui

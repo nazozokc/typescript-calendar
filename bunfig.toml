@@ -1,4 +1,0 @@
-# Register Svelte plugin for Bun.serve HTML-import routes (docs site).
-# https://github.com/stevekinney/bun-plugin-svelte
-[serve.static]
-plugins = ["@lostgradient/bun-plugin-svelte"]
