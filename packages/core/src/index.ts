@@ -1,3 +1,4 @@
+export type { LocaleData } from "./locale.ts";
 export {
   getMonthName,
   getWeekdayHeaders,
@@ -15,10 +16,12 @@ export type {
 export type { CalendarCellState } from "./utils.ts";
 export {
   buildMonthGrid,
+  daysInMonth,
   firstDayOfMonth,
   getCalendarCellState,
   getMonthRange,
   isDateInRange,
+  isLeapYear,
   isSameDay,
   lastDayOfMonth,
 } from "./utils.ts";

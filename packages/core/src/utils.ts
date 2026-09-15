@@ -2,6 +2,7 @@ import type { WeekStart } from "./types.ts";
 import {
   assertValidDate,
   assertValidWeekStart,
+  assertValidYear,
   assertValidYearMonth,
   createDate,
 } from "./validation.ts";
@@ -100,6 +101,7 @@ export function getCalendarCellState(
     range?: { from: Date; to: Date };
   } = {},
 ): CalendarCellState {
+  assertValidDate(date);
   return {
     isWeekend: date.getDay() === 0 || date.getDay() === 6,
     isToday: options.today !== undefined && isSameDay(date, options.today),
@@ -122,4 +124,16 @@ export function getMonthRange(
     const n = start + i;
     return { year: Math.floor(n / 12), month: (n % 12) + 1 };
   });
+}
+
+/** グレゴリオ暦のうるう年判定（4で割れるが100では割れない、または400で割れる） */
+export function isLeapYear(year: number): boolean {
+  assertValidYear(year);
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
+/** 月の日数（1-31）を返す */
+export function daysInMonth(year: number, month: number): number {
+  assertValidYearMonth(year, month);
+  return lastDayOfMonth(year, month).getDate();
 }

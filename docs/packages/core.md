@@ -90,6 +90,33 @@ interface CalendarRangeOptions {
 
 Same as `CalendarOptions` minus `year`/`month`. Used by the low-level `renderMonth` helper.
 
+### `CalendarCellState`
+
+Flags computed by `getCalendarCellState` for a single day cell:
+
+```ts
+interface CalendarCellState {
+  isWeekend: boolean;   // Saturday or Sunday
+  isToday: boolean;     // matches `today`
+  isHighlight: boolean; // matches `highlight`
+  isInRange: boolean;   // within `range` (inclusive)
+}
+```
+
+### `LocaleData`
+
+The shape of the per-locale data held in `LOCALES`:
+
+```ts
+interface LocaleData {
+  months: readonly string[];
+  weekdays: readonly string[];
+  weekdaysShort: readonly string[];
+  weekdaysMonday: readonly string[];
+  weekdaysMondayShort: readonly string[];
+}
+```
+
 ## Constants
 
 ### `LOCALES`
@@ -172,6 +199,45 @@ getMonthRange(new Date(2026, 5, 1), new Date(2026, 8, 30));
 
 Throws `RangeError` when `from` is after `to`, or when either date is invalid.
 
+### `getCalendarCellState(date, options?): CalendarCellState`
+
+Computes the display state of a single day cell (weekend, today, highlight, in-range):
+
+```ts
+const state = getCalendarCellState(new Date(2026, 8, 6), {
+  today: new Date(2026, 8, 6),
+  highlight: new Date(2026, 8, 6),
+  range: { from: new Date(2026, 8, 1), to: new Date(2026, 8, 10) },
+});
+// { isWeekend: true, isToday: true, isHighlight: true, isInRange: true }
+```
+
+With no options every flag is `false` (except `isWeekend`, which is derived from the date itself). Throws `RangeError` when `date` is invalid.
+
+### `isLeapYear(year): boolean`
+
+Returns `true` for Gregorian leap years (divisible by 4, except by 100 unless also by 400):
+
+```ts
+isLeapYear(2024); // true
+isLeapYear(1900); // false
+isLeapYear(2000); // true
+```
+
+Works for years `1`–`99` too (no 1900-interpretation). Throws `RangeError` for out-of-range or non-integer years.
+
+### `daysInMonth(year, month): number`
+
+Returns the number of days in the month (`28`–`31`):
+
+```ts
+daysInMonth(2026, 2); // 28
+daysInMonth(2024, 2); // 29 (leap year)
+daysInMonth(2026, 4); // 30
+```
+
+Throws `RangeError` for invalid `year`/`month`.
+
 ## Input validation
 
 All functions validate their inputs and throw `RangeError` on invalid values instead of silently
@@ -194,11 +260,13 @@ producing wrong results:
 ```ts
 // Types
 import type {
+  CalendarCellState,
   CalendarOptions,
   CalendarRangeOptions,
   CalendarYearOptions,
   HighlightStyle,
   Locale,
+  LocaleData,
   RenderMonthOptions,
   WeekStart,
 } from "@typescript-calendar-lib/core";
@@ -211,11 +279,14 @@ import {
   assertValidDate,
   buildMonthGrid,
   createDate,
+  daysInMonth,
   firstDayOfMonth,
+  getCalendarCellState,
   getMonthName,
   getMonthRange,
   getWeekdayHeaders,
   isDateInRange,
+  isLeapYear,
   isSameDay,
   lastDayOfMonth,
 } from "@typescript-calendar-lib/core";
@@ -225,6 +296,12 @@ import {
 
 Creates a local `Date` at `00:00:00` without the `new Date(year, ...)` 1900-interpretation for
 years `0`–`99`. `monthIndex` is 0-based like `Date`.
+
+`year` must be an integer `1`–`9999`, `monthIndex` an integer `0`–`12`, and `day` an integer
+`0`–`31`. `monthIndex 12` rolls to January of the following year, and `day 0` means the last day
+of the previous month (the internal idiom used by `lastDayOfMonth`); a `day` beyond the end of
+the month rolls over to the next month — all exactly like `new Date`. Anything else throws
+`RangeError`.
 
 ### `assertValidDate(date): void`
 

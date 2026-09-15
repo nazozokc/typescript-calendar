@@ -110,4 +110,42 @@ describe("createDate", () => {
     expect(date.getMonth()).toBe(2);
     expect(date.getDate()).toBe(3);
   });
+
+  test("day 0 は前月の月末になる", () => {
+    // monthIndex 2（3月）の day 0 = 2月末
+    const date = createDate(2026, 2, 0);
+    expect(date.getFullYear()).toBe(2026);
+    expect(date.getMonth()).toBe(1);
+    expect(date.getDate()).toBe(28);
+  });
+});
+
+describe("createDate の入力検証", () => {
+  test("year 0 と 10000 は RangeError", () => {
+    expect(() => createDate(0, 0, 1)).toThrow(RangeError);
+    expect(() => createDate(10000, 0, 1)).toThrow(RangeError);
+  });
+
+  test("monthIndex が範囲外（-1, 13）は RangeError", () => {
+    expect(() => createDate(2026, -1, 1)).toThrow(RangeError);
+    expect(() => createDate(2026, 13, 1)).toThrow(RangeError);
+  });
+
+  test("monthIndex 12 は翌年1月にロールする", () => {
+    const date = createDate(2026, 12, 1);
+    expect(date.getFullYear()).toBe(2027);
+    expect(date.getMonth()).toBe(0);
+    expect(date.getDate()).toBe(1);
+  });
+
+  test("day が範囲外（-1, 32）は RangeError", () => {
+    expect(() => createDate(2026, 0, -1)).toThrow(RangeError);
+    expect(() => createDate(2026, 0, 32)).toThrow(RangeError);
+  });
+
+  test("非整数（NaN, 1.5）は RangeError", () => {
+    expect(() => createDate(NaN, 0, 1)).toThrow(RangeError);
+    expect(() => createDate(2026, 1.5, 1)).toThrow(RangeError);
+    expect(() => createDate(2026, 0, 1.5)).toThrow(RangeError);
+  });
 });
