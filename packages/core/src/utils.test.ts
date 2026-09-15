@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
   buildMonthGrid,
   firstDayOfMonth,
+  getCalendarCellState,
   getMonthRange,
   isDateInRange,
   isSameDay,
@@ -104,6 +105,33 @@ describe("isSameDay", () => {
 
   test("同じ日だが異なる月はfalse", () => {
     expect(isSameDay(new Date(2026, 8, 8), new Date(2026, 7, 8))).toBe(false);
+  });
+});
+
+describe("getCalendarCellState", () => {
+  test("セルの状態をまとめて計算する", () => {
+    const date = new Date(2026, 8, 6);
+    expect(
+      getCalendarCellState(date, {
+        today: date,
+        highlight: date,
+        range: { from: new Date(2026, 8, 1), to: new Date(2026, 8, 10) },
+      }),
+    ).toEqual({
+      isWeekend: true,
+      isToday: true,
+      isHighlight: true,
+      isInRange: true,
+    });
+  });
+
+  test("オプション未指定時は状態がすべてfalse", () => {
+    expect(getCalendarCellState(new Date(2026, 8, 7))).toEqual({
+      isWeekend: false,
+      isToday: false,
+      isHighlight: false,
+      isInRange: false,
+    });
   });
 });
 
