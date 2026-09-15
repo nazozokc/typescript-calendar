@@ -5,7 +5,6 @@ import type {
   MonthDirection,
 } from "@typescript-calendar-lib/tui";
 import {
-  buildMonthData,
   clearSelection,
   createCalendarState,
   getCursorDate,
@@ -13,9 +12,9 @@ import {
   goToToday,
   moveCursor,
   navigateMonth,
-  rebuildState,
-  resolveOptions,
+  sameStateOptions,
   selectDate,
+  updateStateOptions,
 } from "@typescript-calendar-lib/tui";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -46,28 +45,6 @@ export interface UseCalendarStateReturn {
   cursorDate: Date | null;
   /** 選択済み日付（null の場合あり） */
   selectedDate: Date | null;
-}
-
-/** undefined を含む日付を値（時刻）で比較する */
-function sameDateValue(a: Date | undefined, b: Date | undefined): boolean {
-  return (a?.getTime() ?? -1) === (b?.getTime() ?? -1);
-}
-
-/** オプションの「値」が等しいか比較する（Date は getTime、参照ではない） */
-function sameOptionsValue(
-  a: UseCalendarStateOptions,
-  b: UseCalendarStateOptions,
-): boolean {
-  return (
-    a.initialYear === b.initialYear &&
-    a.initialMonth === b.initialMonth &&
-    a.locale === b.locale &&
-    a.weekStart === b.weekStart &&
-    sameDateValue(a.today, b.today) &&
-    sameDateValue(a.highlight, b.highlight) &&
-    sameDateValue(a.range?.from, b.range?.from) &&
-    sameDateValue(a.range?.to, b.range?.to)
-  );
 }
 
 /**
@@ -102,43 +79,10 @@ export function useCalendarState(
   // でも何もしないため、インラインリテラルを毎回渡しても無限ループしない。
   const prevOptions = useRef(options);
   useEffect(() => {
-    if (sameOptionsValue(prevOptions.current, options)) return;
-    // initialYear/initialMonth は「初期値」。値が実際に変わった時だけ適用し、
-    // 変わっていない場合はナビゲーション後の現在位置 (prev.year/month) を維持する
-    // （options 変更で表示月が初期値に引き戻されるのを防ぐ）。
-    const prevInitialYear = prevOptions.current.initialYear;
-    const prevInitialMonth = prevOptions.current.initialMonth;
+    if (sameStateOptions(prevOptions.current, options)) return;
+    const previous = prevOptions.current;
     prevOptions.current = options;
-    setState((prev) => {
-      const resolved = resolveOptions({
-        // today が省略されたら前回の値を引き継ぐ（状態に固定された今日を維持）
-        today: options.today ?? prev.options.today,
-        locale: options.locale ?? prev.options.locale,
-        weekStart: options.weekStart ?? prev.options.weekStart,
-        highlight: options.highlight,
-        range: options.range,
-      });
-      const year =
-        options.initialYear !== undefined &&
-        options.initialYear !== prevInitialYear
-          ? options.initialYear
-          : prev.year;
-      const month =
-        options.initialMonth !== undefined &&
-        options.initialMonth !== prevInitialMonth
-          ? options.initialMonth
-          : prev.month;
-      // 範囲外の month は rebuildState 側で正規化される（state と monthData の乖離を防ぐ）
-      const monthData = buildMonthData(year, month, resolved);
-      return rebuildState(
-        year,
-        month,
-        prev.cursor,
-        prev.selectedDate,
-        resolved,
-        monthData,
-      );
-    });
+    setState((current) => updateStateOptions(current, options, previous));
   }, [options]);
 
   return {
