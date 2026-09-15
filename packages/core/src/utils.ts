@@ -100,6 +100,7 @@ export function getCalendarCellState(
     range?: { from: Date; to: Date };
   } = {},
 ): CalendarCellState {
+  assertValidDate(date);
   return {
     isWeekend: date.getDay() === 0 || date.getDay() === 6,
     isToday: options.today !== undefined && isSameDay(date, options.today),

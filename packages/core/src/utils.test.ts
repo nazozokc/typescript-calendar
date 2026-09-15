@@ -133,6 +133,26 @@ describe("getCalendarCellState", () => {
       isInRange: false,
     });
   });
+
+  test("土曜は週末と判定される", () => {
+    const saturday = new Date(2026, 8, 12); // 2026-09-12 は土曜
+    expect(saturday.getDay()).toBe(6);
+    expect(getCalendarCellState(saturday).isWeekend).toBe(true);
+  });
+
+  test("平日は週末と判定されない", () => {
+    const weekday = new Date(2026, 8, 9); // 2026-09-09 は水曜
+    expect(weekday.getDay()).toBe(3);
+    expect(getCalendarCellState(weekday).isWeekend).toBe(false);
+  });
+
+  test("Invalid Date は RangeError（オプション未指定でも検証される）", () => {
+    const invalid = new Date("invalid");
+    expect(() => getCalendarCellState(invalid)).toThrow(RangeError);
+    expect(() =>
+      getCalendarCellState(new Date(2026, 8, 7), { today: invalid }),
+    ).toThrow(RangeError);
+  });
 });
 
 describe("getMonthRange", () => {
