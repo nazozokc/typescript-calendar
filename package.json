@@ -5,6 +5,8 @@
   "scripts": {
     "hooks:install": "git config core.hooksPath .githooks",
     "build": "pnpm -r run build",
+    "audit:dependencies": "pnpm audit --audit-level high",
+    "check:dependencies": "node scripts/check-runtime-dependencies.mjs",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "typecheck": "tsc -p tsconfig.json && pnpm --filter @typescript-calendar-lib/svelte run typecheck",
