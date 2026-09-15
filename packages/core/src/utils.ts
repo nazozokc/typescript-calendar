@@ -6,6 +6,13 @@ import {
   createDate,
 } from "./validation.ts";
 
+export interface CalendarCellState {
+  isWeekend: boolean;
+  isToday: boolean;
+  isHighlight: boolean;
+  isInRange: boolean;
+}
+
 /** 月初日（1日）を返す */
 export function firstDayOfMonth(year: number, month: number): Date {
   assertValidYearMonth(year, month);
@@ -82,6 +89,25 @@ export function isSameDay(a: Date, b: Date): boolean {
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate()
   );
+}
+
+/** 日付セルの表示状態を計算する */
+export function getCalendarCellState(
+  date: Date,
+  options: {
+    today?: Date;
+    highlight?: Date;
+    range?: { from: Date; to: Date };
+  } = {},
+): CalendarCellState {
+  return {
+    isWeekend: date.getDay() === 0 || date.getDay() === 6,
+    isToday: options.today !== undefined && isSameDay(date, options.today),
+    isHighlight:
+      options.highlight !== undefined && isSameDay(date, options.highlight),
+    isInRange:
+      options.range !== undefined && isDateInRange(date, options.range),
+  };
 }
 
 /** 日付が範囲の開始年から終了年までの月リストを返す */

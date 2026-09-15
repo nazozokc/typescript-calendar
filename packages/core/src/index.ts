@@ -12,9 +12,11 @@ export type {
   RenderMonthOptions,
   WeekStart,
 } from "./types.ts";
+export type { CalendarCellState } from "./utils.ts";
 export {
   buildMonthGrid,
   firstDayOfMonth,
+  getCalendarCellState,
   getMonthRange,
   isDateInRange,
   isSameDay,
