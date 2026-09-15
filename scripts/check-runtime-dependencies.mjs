@@ -15,9 +15,10 @@ for (const directory of packageDirectories) {
     packagesDirectory,
   );
   const packageJson = JSON.parse(await readFile(packagePath, "utf8"));
-  const externalDependencies = Object.keys(
-    packageJson.dependencies ?? {},
-  ).filter((name) => !name.startsWith(internalScope));
+  const externalDependencies = Object.keys({
+    ...(packageJson.dependencies ?? {}),
+    ...(packageJson.optionalDependencies ?? {}),
+  }).filter((name) => !name.startsWith(internalScope));
 
   for (const dependency of externalDependencies) {
     violations.push(`${packageJson.name}: ${dependency}`);
