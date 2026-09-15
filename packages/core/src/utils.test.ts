@@ -1,10 +1,12 @@
 import { describe, expect, test } from "vitest";
 import {
   buildMonthGrid,
+  daysInMonth,
   firstDayOfMonth,
   getCalendarCellState,
   getMonthRange,
   isDateInRange,
+  isLeapYear,
   isSameDay,
   lastDayOfMonth,
 } from "./utils.ts";
@@ -184,6 +186,59 @@ describe("getMonthRange", () => {
     expect(
       getMonthRange(new Date(2026, 0, 1), new Date(2026, 11, 31)),
     ).toHaveLength(12);
+  });
+});
+
+describe("isLeapYear", () => {
+  test("4で割れる年はうるう年", () => {
+    expect(isLeapYear(2024)).toBe(true);
+    expect(isLeapYear(2020)).toBe(true);
+  });
+
+  test("100で割れるが400で割れない年は平年", () => {
+    expect(isLeapYear(1900)).toBe(false);
+    expect(isLeapYear(2100)).toBe(false);
+  });
+
+  test("400で割れる年はうるう年", () => {
+    expect(isLeapYear(2000)).toBe(true);
+    expect(isLeapYear(1600)).toBe(true);
+  });
+
+  test("年0-99も1900解釈なしで判定できる", () => {
+    expect(isLeapYear(24)).toBe(true); // 24 % 4 === 0
+    expect(isLeapYear(50)).toBe(false);
+  });
+
+  test("不正な年は RangeError", () => {
+    const invalidYears = [0, -1, NaN, Infinity, 10000, 2026.5];
+    for (const year of invalidYears) {
+      expect(() => isLeapYear(year)).toThrow(RangeError);
+    }
+  });
+});
+
+describe("daysInMonth", () => {
+  test("31日/30日/2月の日数", () => {
+    expect(daysInMonth(2026, 1)).toBe(31);
+    expect(daysInMonth(2026, 4)).toBe(30);
+    expect(daysInMonth(2026, 2)).toBe(28);
+  });
+
+  test("うるう年の2月は29日", () => {
+    expect(daysInMonth(2024, 2)).toBe(29);
+    expect(daysInMonth(2000, 2)).toBe(29);
+  });
+
+  test("年0-99も正しく判定できる", () => {
+    expect(daysInMonth(24, 2)).toBe(29); // うるう年
+    expect(daysInMonth(50, 2)).toBe(28);
+  });
+
+  test("不正な入力は RangeError", () => {
+    expect(() => daysInMonth(0, 1)).toThrow(RangeError);
+    expect(() => daysInMonth(2026, 13)).toThrow(RangeError);
+    expect(() => daysInMonth(NaN, 1)).toThrow(RangeError);
   });
 });
 
