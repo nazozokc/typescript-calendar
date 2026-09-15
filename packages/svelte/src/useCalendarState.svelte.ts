@@ -5,7 +5,6 @@ import type {
   MonthDirection,
 } from "@typescript-calendar-lib/tui";
 import {
-  buildMonthData,
   clearSelection,
   createCalendarState,
   getCursorDate,
@@ -13,9 +12,9 @@ import {
   goToToday,
   moveCursor,
   navigateMonth,
-  rebuildState,
-  resolveOptions,
+  sameStateOptions,
   selectDate,
+  updateStateOptions,
 } from "@typescript-calendar-lib/tui";
 
 export interface UseCalendarStateOptions
@@ -59,27 +58,6 @@ export interface UseCalendarStateReturn {
 }
 
 /** undefined を含む日付を値（時刻）で比較する */
-function sameDateValue(a: Date | undefined, b: Date | undefined): boolean {
-  return (a?.getTime() ?? -1) === (b?.getTime() ?? -1);
-}
-
-/** オプションの「値」が等しいか比較する（Date は getTime、参照ではない） */
-function sameOptionsValue(
-  a: UseCalendarStateOptions,
-  b: UseCalendarStateOptions,
-): boolean {
-  return (
-    a.initialYear === b.initialYear &&
-    a.initialMonth === b.initialMonth &&
-    a.locale === b.locale &&
-    a.weekStart === b.weekStart &&
-    sameDateValue(a.today, b.today) &&
-    sameDateValue(a.highlight, b.highlight) &&
-    sameDateValue(a.range?.from, b.range?.from) &&
-    sameDateValue(a.range?.to, b.range?.to)
-  );
-}
-
 /**
  * tui の不変状態機械を包む Svelte 5 (runes) のリアクティブ状態。
  * カレンダーのインタラクティブ操作をシンプルに利用できる。
@@ -130,39 +108,10 @@ export function useCalendarState(
   let prev = getter();
   $effect(() => {
     const next = getter();
-    if (sameOptionsValue(prev, next)) return;
-
-    // initialYear/initialMonth は「初期値」。値が実際に変わった時だけ適用し、
-    // 変わっていない場合はナビゲーション後の現在位置を維持する。
-    const prevInitialYear = prev.initialYear;
-    const prevInitialMonth = prev.initialMonth;
+    if (sameStateOptions(prev, next)) return;
+    const previous = prev;
     prev = next;
-    const resolved = resolveOptions({
-      // today が省略されたら前回の値を引き継ぐ（状態に固定された今日を維持）
-      today: next.today ?? state.options.today,
-      locale: next.locale ?? state.options.locale,
-      weekStart: next.weekStart ?? state.options.weekStart,
-      highlight: next.highlight,
-      range: next.range,
-    });
-    const year =
-      next.initialYear !== undefined && next.initialYear !== prevInitialYear
-        ? next.initialYear
-        : state.year;
-    const month =
-      next.initialMonth !== undefined && next.initialMonth !== prevInitialMonth
-        ? next.initialMonth
-        : state.month;
-    // 範囲外の month は rebuildState 側で正規化される（state と monthData の乖離を防ぐ）
-    const monthData = buildMonthData(year, month, resolved);
-    state = rebuildState(
-      year,
-      month,
-      state.cursor,
-      state.selectedDate,
-      resolved,
-      monthData,
-    );
+    state = updateStateOptions(state, next, previous);
   });
 
   return {

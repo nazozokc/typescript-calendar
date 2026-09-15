@@ -21,6 +21,7 @@ export {
 } from "./search.ts";
 export { clearSelection, getSelectedDate, selectDate } from "./selection.ts";
 export { createCalendarState, rebuildState } from "./state.ts";
+export { sameStateOptions, updateStateOptions } from "./state-options.ts";
 export type {
   CellStyle,
   ColorScheme,
